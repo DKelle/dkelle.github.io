@@ -2,9 +2,8 @@
 <html>
 
 <head>
-</head>
 
-<body>
+<link rel="stylesheet" type="text/css" href="jazz.css">
 
 <audio src="jazz/three_to_get_ready.mp3" preload="metadata" id="three_to_get_ready" ></audio>
 <audio src="jazz/walkin_shoes.m4a" preload="metadata" id="walking_shoes"></audio>
@@ -14,15 +13,28 @@
 <audio src="jazz/all_the_things_you_are.m4a" preload="metadata" id="all_the_things_you_are"></audio>
 
 <script src="jazz.js"></script>
-<link rel="stylesheet" type="text/css" href="jazz.css">
-	
-<div id="div1" class="roundtangle" onclick="showCorrectAnswer(1)"> </div>
-<div id="div2" class="roundtangle" onclick="showCorrectAnswer(2)"> </div>
-<div id="div3" class="roundtangle" onclick="showCorrectAnswer(3)"> </div>
-<div id="div4" class="roundtangle" onclick="showCorrectAnswer(4)"> </div>
 
-<div id="next" class="roundtangle" onclick="startNewQuestion()">Next</div>
+</head>
 
+<body>
+
+
+<div id="outerContainer" >
+    <div id="question"><p id="questionp"> Temp Question </p></div>
+
+    <div id="leftContainer" class="container"> 	
+    	<div id="div1" class="roundtangle" onclick="showCorrectAnswer(1)" ><p> </p></div>
+    	<div id="div2" class="roundtangle" onclick="showCorrectAnswer(2)" ><p> </p> </div>
+    </div>
+
+    <div id="rightContainer" class="container">
+    	<div id="div3" class="roundtangle" onclick="showCorrectAnswer(3)" ><p> </p> </div>
+    	<div id="div4" class="roundtangle" onclick="showCorrectAnswer(4)" ><p> </p> </div>
+    </div>
+
+    <div id="next" class="roundtangle" onclick="startNewQuestion()"><p>Next</p></div>
+
+</div>
 
 </body>
 <html>

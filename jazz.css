@@ -1,7 +1,51 @@
+@font-face {
+    font-family: bellerose;
+    src: url(Bellerose.ttf);
+}
+
 .roundtangle {
+    margin: 10px;
     border-radius: 25px;
-    background: #dad4b9;
-    padding: 20px; 
-    width: 400px;
-    height: 25px; 
+    background: #dadada;
+    padding: 12px; 
+    height: 15px;
+}
+
+.roundtangle:hover {
+    background: #bababa;
+}
+
+.container {
+    width: 350px;
+    text-align: center;
+    margin: auto;
+    display: inline-block;
+}
+
+#outerContainer {
+    text-align: center;
+    width: 800px;
+    margin: auto;
+    margin-top: 200px;
+}
+
+#next {
+    margin-top: 50px;
+}
+
+#question {
+   height: 200px; 
+}
+
+#questionp {
+    margin-top: 5px;
+}
+
+body {
+    font-family: bellerose;
+}
+
+p {
+    vertical-align: middle;
+    margin-top: -15px
 }

@@ -34,7 +34,7 @@ function loadQuestion()
     //Set each of the four divs to have one of the answer choices as text
     for(i = 1; i <= 4; i ++)
     {
-	document.getElementById("div"+i).innerHTML = answerChoices[i-1];
+	   document.getElementById("div"+i).children[0].innerHTML = answerChoices[i-1].replace(/[_]/g, " ");
     }
 
     //Start at some random point in the song
