@@ -98,6 +98,11 @@ function loadQuestion()
 
 function startNewQuestion()
 {
+    if(!answerDisplayed)
+    {
+	return;
+    }
+
     //Stop the previous song, and load a new one 
     document.getElementById(currentSongName).pause();
     document.getElementById(currentSongName).currentTime = 0;
