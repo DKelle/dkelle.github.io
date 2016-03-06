@@ -7,8 +7,8 @@ var years = ["1945", "1996", "1949", "1953", "1963", "1930", "1942", "1957"]
 var albums = ["Null", "Blue_Note_Blend_2", "Birth_Of_The_Cool", "Nights_At_The_Turn_Table", "Getz/Gilberto", "Null", "Null", "Such_Sweet_Thunder" ]
 
 //Use this array to determine which question we should ask. Our choices are which song, which artist, which year, and which almub is this song from
-var qOneDistribution = [songs, songs, songs, songs, songs, songs, artists, years, albums];
-var qTwoDistribution = [songs, artists, years, albums];
+var qOneDistribution = [songs, songs, songs, songs, years, albums, artists, years, albums];
+var qTwoDistribution = [songs, artists, artists, artists, years, albums];
 
 var answerChoices = new Array();
 var correctButtonNum;

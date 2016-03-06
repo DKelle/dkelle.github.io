@@ -9,10 +9,16 @@
     background: #dadada;
     padding: 12px; 
     height: 30px;
+    transition: 500ms all ease;
 }
 
 .roundtangle:hover {
     background: #bababa !important;
+
+    /*box-shadow: 12px 13px 0px rgba(204, 211, 51, 0.38),
+    		-11px -14px 0px rgba(241, 96, 0, 0.28),
+		18px -24px 0px rgba(0, 0, 0, 0.34),
+		33px -6px 0px rgba(39, 74, 214, 0.28); */
 }
 
 .container {
@@ -21,6 +27,18 @@
     margin: auto;
     display: inline-block;
 }
+
+.textbox { 
+    border: 1px solid #848484; 
+    -webkit-border-radius: 3px; 
+    -moz-border-radius: 3px; 
+    border-radius: 30px; 
+    outline:0; 
+    height:25px; 
+    width: 275px; 
+    padding-left:10px; 
+    padding-right:10px; 
+  } 
 
 #outerContainer {
     text-align: center;
