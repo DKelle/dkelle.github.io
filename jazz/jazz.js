@@ -52,11 +52,11 @@ function loadQuestion()
 	var divText = answerSrc[ran];
 	var divText2 = answerSrcTwo[ran];
 	var optionText = answerSrc[ran] + (twoQuestions ? " / " + answerSrcTwo[ran] : "");
-    	while(answerChoices.indexOf(optionText) > -1 || answerIndex == ran || divText === "Null" || (divText2 === "Null" && twoQuestions))
+    	while(answerChoices.indexOf(optionText) > -1 || answerIndex == ran || optionText.indexOf("Null") > -1)
     	{
+	    ran = Math.floor(Math.random()*songs.length);
 	    divText = answerSrc[ran];
 	    divText2 = answerSrcTwo[ran];
-	    ran = Math.floor(Math.random()*songs.length);
 	    optionText = answerSrc[ran] + (twoQuestions ? " / " + answerSrcTwo[ran] : "");
     	}
     	answerChoices[i] = optionText;
@@ -87,7 +87,7 @@ function loadQuestion()
 
     //Start at some random point in the song
     var song = document.getElementById(currentSongName);
-    song.currentTime = Math.floor(Math.random()*(song.duration - song.duration/25));
+    //song.currentTime = Math.floor(Math.random()*(song.duration - song.duration/25));
     song.play();
 }
 
