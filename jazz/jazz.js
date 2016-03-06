@@ -88,7 +88,7 @@ function loadQuestion()
     //Start at some random point in the song
     var song = document.getElementById(currentSongName);
     song.currentTime = Math.floor(Math.random()*(song.duration - song.duration/25));
-    //song.play();
+    song.play();
 }
 
 function startNewQuestion()
