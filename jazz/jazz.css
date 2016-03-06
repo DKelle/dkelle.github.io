@@ -8,15 +8,15 @@
     border-radius: 25px;
     background: #dadada;
     padding: 12px; 
-    height: 15px;
+    height: 30px;
 }
 
 .roundtangle:hover {
-    background: #bababa;
+    background: #bababa !important;
 }
 
 .container {
-    width: 350px;
+    width: 600px;
     text-align: center;
     margin: auto;
     display: inline-block;
@@ -24,7 +24,7 @@
 
 #outerContainer {
     text-align: center;
-    width: 800px;
+    width: 1300px;
     margin: auto;
     margin-top: 200px;
 }
@@ -34,18 +34,16 @@
 }
 
 #question {
-   height: 200px; 
-}
-
-#questionp {
-    margin-top: 5px;
+    height: 200px; 
+    font-size: -webkit-xxx-large;
 }
 
 body {
     font-family: bellerose;
+    font-size: larger;
 }
 
 p {
     vertical-align: middle;
-    margin-top: -15px
+    margin-top: -12px
 }
