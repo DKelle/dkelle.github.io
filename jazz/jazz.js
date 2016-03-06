@@ -1,5 +1,5 @@
 //populate the array of song titles
-var songs = ["Ko_Ko", "But_Not_For_Me", "Moon_Dreams", "Nights_At_The_Turn_Table", "O_Grande_Amor", "Black_And_Tan_Fantasy", "Jersey_Bounce", "Madness_In_Great_Ones", "Manteca", "Ive_Got_a_Girl_In_Kalamazoo", "Jumping_at_the_Woodside"];
+var songs = ["Ko_Ko", "But_Not_For_Me", "Moon_Dreams", "Nights_At_The_Turn_Table", "O_Grande_Amor", "Black_And_Tan_Fantasy", "Jersey_Bounce", "Madness_In_Great_Ones", "Manteca", "Ive_Got_a_Gal_In_Kalamazoo", "Jumping_at_the_Woodside"];
 var artists = ["Charlie_Parker", "Chet_Baker", "Duke_Ellington", "Gerry_Mulligan", "Stan_Getz", "Duke_Ellington", "Benny_Goodman", "Duke_Ellington", "Charlie_Parker", "Glen_Miller", "Count_Baise"];
 var years = ["1945", "1996", "1949", "1953", "1963", "1930", "1942", "1957", "1947", "Null", "Null"];
 var albums = ["Null", "Blue_Note_Blend_2", "Birth_Of_The_Cool", "Nights_At_The_Turn_Table", "Getz/Gilberto", "Null", "Null", "Such_Sweet_Thunder", "Null", "Null", "Null"];
@@ -62,9 +62,6 @@ function loadQuestion()
 	    divText = answerSrc[ran];
 	    divText2 = answerSrcTwo[ran];
 	    optionText = answerSrc[ran] + (twoQuestions ? " / " + answerSrcTwo[ran] : "");
-	    console.log("index: "+answerChoices.indexOf(optionText)
-			+"\noptionText: "+optionText
-			+"\nanswer: " +answer);	
     	}
     	answerChoices[i] = optionText;
     }
@@ -137,7 +134,6 @@ function alterDistribution(answeredCorrectly)
     {
 	//User was correct, so take one answerSrc out of distribution, unless it's the only one left
 	var occurences = countOccurences(qOneDistribution, answerSrc);
-	console.log("O: "+ occurences);
 	if(occurences > 1)
 	{
 	    qOneDistribution.splice(qOneDistribution.indexOf(answerSrc), 1);
