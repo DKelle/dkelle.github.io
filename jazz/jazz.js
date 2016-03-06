@@ -56,7 +56,7 @@ function loadQuestion()
 	var divText = answerSrc[ran];
 	var divText2 = answerSrcTwo[ran];
 	var optionText = answerSrc[ran] + (twoQuestions ? " / " + answerSrcTwo[ran] : "");
-    	while(answerChoices.indexOf(optionText) > -1 || answerIndex == ran || optionText.indexOf("Null") > -1)
+    	while(answerChoices.indexOf(optionText) > -1 || optionText === answer || optionText.indexOf("Null") > -1)
     	{
 	    ran = Math.floor(Math.random()*songs.length);
 	    divText = answerSrc[ran];
@@ -139,12 +139,43 @@ function alterDistribution(answeredCorrectly)
 	{
 	    qOneDistribution.splice(qOneDistribution.indexOf(answerSrc), 1);
 	}
+	
+	//Also make sure this song is asked about less frequently
+	occurences = countOccurences(songs, currentSongName)
+	if(occurences > 1)
+	{
+	    var indexToRemove = songs.indexOf(currentSongName);
+	    songs.splice(indexToRemove, 1);
+	    albums.splice(indexToRemove, 1);
+	    years.splice(indexToRemove, 1);
+	    artists.splice(indexToRemove, 1);
+
+	}
+
     }
     else
     {
 	//The user got the question wrong. Add answerSrc to the distribution so we ask it more often
 	qOneDistribution.push(answerSrc);
+
+	//Add this song so it gets asked about more
+	var indexToAdd = songs.indexOf(currentSongName);
+	songs.push(songs[indexToAdd]);
+	years.push(years[indexToAdd]);
+	artists.push(artists[indexToAdd]);
+	albums.push(albums[indexToAdd]);
+	console.log("incrementing song: "+songs[indexToAdd]+"\n");
     }
+	    for(var i = 0; i < qOneDistribution.length; i ++)
+	    {
+		console.log(qOneDistribution[i]+"\n ");
+	    }
+
+	    for(var i = 0; i < songs.length; i ++)
+	    {
+		console.log(songs[i]+", "+artists[i]+", "+years[i]+", "+albums[i]+", ");
+	    }
+	    console.log("\n");
 }
 
 function countOccurences(arr, elem)
@@ -152,7 +183,7 @@ function countOccurences(arr, elem)
     var count = 0;
     for(var i = 0; i < arr.length; i ++)
     {
-	if(arr[i] == elem)
+	if(arr[i] === elem)
 	{
 	    count ++;
 	}
