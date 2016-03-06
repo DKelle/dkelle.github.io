@@ -1,14 +1,14 @@
 //populate the array of song titles
-var songs = ["Ko_Ko", "Moon_Dreams", "Nights_At_The_Turn_Table", "O_Grande_Amor", "Black_And_Tan_Fantasy", "Jersey_Bounce", "Madness_In_Great_Ones"]
-var artists = ["Charlie_Parker", "Duke_Ellington", "Gerry_Mulligan", "Stan_Getz", "Duke_Ellington", "Benny_Goodman", "Duke_Ellington"]
-var years = ["1945", "1949", "1953", "1963", "1930", "1942", "1957"]
-var albums = ["Null", "Birth_Of_The_Cool", "Nights_At_The_Turn_Table", "Getz/Gilberto", "Null", "Null", "Such_Sweet_Thunder" ]
+var songs = ["Ko_Ko", "But_Not_For_Me", "Moon_Dreams", "Nights_At_The_Turn_Table", "O_Grande_Amor", "Black_And_Tan_Fantasy", "Jersey_Bounce", "Madness_In_Great_Ones", "Manteca", "Ive_Got_a_Girl_In_Kalamazoo", "Jumping_at_the_Woodside"];
+var artists = ["Charlie_Parker", "Chet_Baker", "Duke_Ellington", "Gerry_Mulligan", "Stan_Getz", "Duke_Ellington", "Benny_Goodman", "Duke_Ellington", "Charlie_Parker", "Glen_Miller", "Count_Baise"];
+var years = ["1945", "1996", "1949", "1953", "1963", "1930", "1942", "1957", "1947", "Null", "Null"];
+var albums = ["Null", "Blue_Note_Blend_2", "Birth_Of_The_Cool", "Nights_At_The_Turn_Table", "Getz/Gilberto", "Null", "Null", "Such_Sweet_Thunder", "Null", "Null", "Null"];
 
 //Use this array to determine which question we should ask. Our choices are which song, which artist, which year, and which almub is this song from
-//var qOneDistribution = [songs, songs, songs, songs, years, albums, artists, years, albums];
-//var qTwoDistribution = [songs, artists, artists, artists, years, albums];
-var qOneDistribution = [songs, songs, songs, songs, years, artists, years,];
-var qTwoDistribution = [songs, artists, artists, artists, years];
+var qOneDistribution = [songs, songs, songs, songs, years, albums, artists, years, albums];
+var qTwoDistribution = [songs, artists, artists, artists, years, albums];
+//var qOneDistribution = [songs, songs, songs, songs, years, artists, years,];
+//var qTwoDistribution = [songs, artists, artists, artists, years];
 
 var answerChoices = new Array();
 var correctButtonNum;
@@ -62,6 +62,9 @@ function loadQuestion()
 	    divText = answerSrc[ran];
 	    divText2 = answerSrcTwo[ran];
 	    optionText = answerSrc[ran] + (twoQuestions ? " / " + answerSrcTwo[ran] : "");
+	    console.log("index: "+answerChoices.indexOf(optionText)
+			+"\noptionText: "+optionText
+			+"\nanswer: " +answer);	
     	}
     	answerChoices[i] = optionText;
     }
@@ -166,16 +169,6 @@ function alterDistribution(answeredCorrectly)
 	albums.push(albums[indexToAdd]);
 	console.log("incrementing song: "+songs[indexToAdd]+"\n");
     }
-	    for(var i = 0; i < qOneDistribution.length; i ++)
-	    {
-		console.log(qOneDistribution[i]+"\n ");
-	    }
-
-	    for(var i = 0; i < songs.length; i ++)
-	    {
-		console.log(songs[i]+", "+artists[i]+", "+years[i]+", "+albums[i]+", ");
-	    }
-	    console.log("\n");
 }
 
 function countOccurences(arr, elem)
