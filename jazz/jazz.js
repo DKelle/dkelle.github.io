@@ -94,6 +94,13 @@ function loadQuestion()
     //song.currentTime = Math.floor(Math.random()*(song.duration - song.duration/25));
     song.play();
     answerDisplayed = false;
+
+    //debug print song info
+    console.log("Song info: " 
+				+ "\n\tSong: " + songs[answerIndex]
+				+ "\n\tArist: " + artists[answerIndex]
+				+ "\n\tYear: " + years[answerIndex]
+				+ "\n\tAlbum: " + albums[answerIndex]);
 }
 
 function startNewQuestion()
