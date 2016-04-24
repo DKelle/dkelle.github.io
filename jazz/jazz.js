@@ -29,6 +29,20 @@ var answerSrcTwo;
 var twoQuestions;
 var answerDisplayed;
 
+var mute = false;
+
+document.addEventListener('keydown', function(event) {
+    if(event.keyCode == 32) {
+        if(!mute)
+            document.getElementById(currentSongName).pause();
+        else 
+            document.getElementById(currentSongName).play();
+
+        console.log("mute: "+mute);
+        mute = !mute;
+    }
+});
+
 window.onload = function()
 {
     loadQuestion();
@@ -90,11 +104,13 @@ function loadQuestion()
     //Set the question
     var questionOne = 	answerSrc == songs ? "What is the title of this song" :
 			answerSrc == artists ? "Who is the artist of this song" :
-			answerSrc == years ? "What year was this song released" : "What album is this song on";
+			answerSrc == years ? "What year was this song released" : 
+            answerSrc == category? "What category is this song from" : "What album is this song on";
     
     var questionTwo = 	answerSrcTwo == songs ? ", and what is the title" :
 			answerSrcTwo == artists ? ", and who is the artist" :
-			answerSrcTwo == years ? ", and what year was it released" : ", and what album is it on";
+			answerSrcTwo == years ? ", and what year was it released" : 
+            answerSrcTwo == category ? ", and what is the category" : ", and what album is it on";
 
     var question = questionOne + (twoQuestions ? questionTwo : "") + "?";
 
@@ -111,7 +127,8 @@ function loadQuestion()
 				+ "\n\tSong: " + songs[answerIndex]
 				+ "\n\tArist: " + artists[answerIndex]
 				+ "\n\tYear: " + years[answerIndex]
-				+ "\n\tAlbum: " + albums[answerIndex]);
+				+ "\n\tAlbum: " + albums[answerIndex]
+				+ "\n\tCategory: " + category[answerIndex]);
 }
 
 function startNewQuestion()
