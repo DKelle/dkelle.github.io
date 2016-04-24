@@ -1,12 +1,21 @@
 //populate the array of song titles
-var songs = ["Ko_Ko", "But_Not_For_Me", "Moon_Dreams", "Nights_At_The_Turn_Table", "O_Grande_Amor", "Black_And_Tan_Fantasy", "Jersey_Bounce", "Madness_In_Great_Ones", "Manteca", "Ive_Got_a_Gal_In_Kalamazoo", "Jumping_at_the_Woodside"];
-var artists = ["Charlie_Parker", "Chet_Baker", "Duke_Ellington", "Gerry_Mulligan", "Stan_Getz", "Duke_Ellington", "Benny_Goodman", "Duke_Ellington", "Charlie_Parker", "Glen_Miller", "Count_Baise"];
-var years = ["1945", "1996", "1949", "1953", "1963", "1930", "1942", "1957", "1947", "Null", "Null"];
-var albums = ["Null", "Blue_Note_Blend_2", "Birth_Of_The_Cool", "Nights_At_The_Turn_Table", "Getz/Gilberto", "Null", "Null", "Such_Sweet_Thunder", "Null", "Null", "Null"];
+
+//Quiz 2
+//var songs = ["Ko_Ko", "But_Not_For_Me", "Moon_Dreams", "Nights_At_The_Turn_Table", "O_Grande_Amor", "Black_And_Tan_Fantasy", "Jersey_Bounce", "Madness_In_Great_Ones", "Manteca", "Ive_Got_a_Gal_In_Kalamazoo", "Jumping_at_the_Woodside"];
+//var artists = ["Charlie_Parker", "Chet_Baker", "Duke_Ellington", "Gerry_Mulligan", "Stan_Getz", "Duke_Ellington", "Benny_Goodman", "Duke_Ellington", "Charlie_Parker", "Glen_Miller", "Count_Baise"];
+//var years = ["1945", "1996", "1949", "1953", "1963", "1930", "1942", "1957", "1947", "Null", "Null"];
+//var albums = ["Null", "Blue_Note_Blend_2", "Birth_Of_The_Cool", "Nights_At_The_Turn_Table", "Getz/Gilberto", "Null", "Null", "Such_Sweet_Thunder", "Null", "Null", "Null"];
+
+//Quiz 3
+var songs = ["Hotter_Than_Hot","West_End_Blues","Saeta","So_What","Giant_Steps","Psalm","Well_You_Neednt","Wednesday_Night_Prayer_Meeting","Duet_Solo_Dancers","Waltz_For_Debbie"];
+var artists = ["Louis Armstrong","Louis Armstrong","Miles Davis","Miles Davis","John Coltrane","John Coltrane","Thelonious Monk","Charles Mingus","Charles Mingus","Bill Evans"];
+var albums = ["Louis Armstrong and his Hot Five ","Louis Armstrong and his Hot Five ","Sketches of Spain","Kind of Blue","Giant Steps","A Love Supreme","Genius of Modern Music","Blues and Root","Black Saint and the Sinner Lad","Live at the Village Vanguar"];
+var years = ["1927","1928","1960","1959","1959","1964","1947","1959","1963","1962"];
+var category = ["Early Jazz","Early Jazz","Cool","Modal","Giant Steps","Modal","Beyond","Beyond","Beyond","Beyond"];
 
 //Use this array to determine which question we should ask. Our choices are which song, which artist, which year, and which almub is this song from
-var qOneDistribution = [songs, songs, songs, songs, years, albums, artists, years, albums];
-var qTwoDistribution = [songs, artists, artists, artists, years, albums];
+var qOneDistribution = [songs, songs, songs, songs, years, albums, artists, years, albums, category, category];
+var qTwoDistribution = [songs, artists, artists, artists, years, albums, category];
 //var qOneDistribution = [songs, songs, songs, songs, years, artists, years,];
 //var qTwoDistribution = [songs, artists, artists, artists, years];
 
@@ -36,6 +45,8 @@ function loadQuestion()
     }
 
     currentSongName = songs[answerIndex];
+
+    console.log(currentSongName);
 
     //35% chance of asking 2 questions
     twoQuestions = (Math.floor(Math.random()*100 + 1)) > 35;
