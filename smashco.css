@@ -1,6 +1,8 @@
 /* Style the buttons that are used to open and close the accordion panel */
 button.accordion {
     background-color: #eee;
+    font-size: 15px;
+    font:Calibri;
     color: #444;
     cursor: pointer;
     padding: 18px;
@@ -30,6 +32,9 @@ button.accordion.active:after {
 
 button.legend {
     background-color: #eee;
+    font-style: italic;
+    font-size: 12px;
+    font:Calibri;
     color: #444;
     cursor: pointer;
     padding: 18px;
@@ -38,6 +43,14 @@ button.legend {
     border: none;
     outline: none;
     margin:10px;
+}
+
+p.legend {
+    background-color: #eee;
+    font-style: italic;
+    font-size: 12px;
+    font:Calibri;
+    color: #444;
 }
 
 /* Style the accordion panel. Note: hidden by default */
