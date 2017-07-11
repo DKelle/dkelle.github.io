@@ -48,7 +48,7 @@ button.legend {
 p.legend {
     background-color: #eee;
     font-style: italic;
-    font-size: 12px;
+    font-size: 18px;
     font:Calibri;
     color: #444;
 }
@@ -58,7 +58,6 @@ div.panel {
     width: 100%;
     text-align:center;
     padding: 0 18px;
-    background-color: white;
     display: none;
     transition:max-height 0.2s ease-out;
 }
@@ -70,8 +69,8 @@ div {
 
 #left {
     float: left;
-    width:33%;
-    margin: 5px;
+    width:40%;
+    margin: 5%;
 }
 #center {
     margin: 5px 0;
@@ -79,6 +78,30 @@ div {
 }
 #right {
     float: right;
-    margin: 5px;
-    width: 33%;
+    margin: 5%;
+    width: 40%;
+}
+
+table {
+    border-collapse: collapse;
+    width: 90%;
+    margin:5%;
+}
+
+th, td {
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even){background-color: #f2f2f2}
+
+body  {
+    background-image: url('smash4.png');
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+
+        /* Full height */
+    height: 100%;
+    width: 100%;
 }
