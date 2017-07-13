@@ -1,3 +1,4 @@
+
 /* Style the buttons that are used to open and close the accordion panel */
 button.accordion {
     background-color: #eee;
@@ -6,11 +7,13 @@ button.accordion {
     color: #444;
     cursor: pointer;
     padding: 18px;
-    width: 100%;
+    width: 80%;
     text-align: center;
     border: none;
     outline: none;
     margin:10px;
+    vertical-align:middle;
+
 }
 
 /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
@@ -33,7 +36,7 @@ button.accordion.active:after {
 button.legend {
     background-color: #eee;
     font-style: italic;
-    font-size: 12px;
+    font-size: 20px;
     font:Calibri;
     color: #444;
     cursor: pointer;
@@ -45,47 +48,25 @@ button.legend {
     margin:10px;
 }
 
-p.legend {
-    background-color: #eee;
-    font-style: italic;
-    font-size: 18px;
-    font:Calibri;
-    color: #444;
-}
 
 /* Style the accordion panel. Note: hidden by default */
 div.panel {
     width: 100%;
-    text-align:center;
-    padding: 0 18px;
     display: none;
     transition:max-height 0.2s ease-out;
 }
 
 div {
     height: 100%;
-    float: left;
+    text-align:center;
 }
 
-#left {
-    float: left;
-    width:40%;
-    margin: 5%;
-}
-#center {
-    margin: 5px 0;
-    width: 33%;
-}
-#right {
-    float: right;
-    margin: 5%;
-    width: 40%;
-}
 
 table {
     border-collapse: collapse;
-    width: 90%;
-    margin:5%;
+    margin: 0 auto;
+    width: 80%;
+    margin-bottom: 5%;
 }
 
 th, td {
@@ -93,15 +74,43 @@ th, td {
     padding: 8px;
 }
 
-tr:nth-child(even){background-color: #f2f2f2}
+tr{background-color: #f2f2f2}
 
 body  {
-    background-image: url('smash4.png');
     background-repeat: no-repeat;
     background-attachment: fixed;
     background-size: cover;
 
         /* Full height */
-    height: 100%;
+    height: 100%; 
     width: 100%;
+}
+
+
+@media only screen and (min-device-width: 800px)
+{
+	body{
+    	    background-image: url('smash4.png');
+	}
+	#left {
+	    float: left;
+	    width:40%;
+	    margin: 5%;
+	}
+	#center {
+	    margin: 5px 0;
+	    width: 33%;
+	}
+	#right {
+	    float: right;
+	    margin: 5%;
+	    width: 40%;
+	}
+}
+
+@media only screen and (max-device-width: 480px)
+{
+	body{
+    	    background-image: url('smash4-mobile2.png');
+	}
 }
