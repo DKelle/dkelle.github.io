@@ -104,8 +104,6 @@ function insertChat(who, text, time = 0, date = 0){
 function intro() {
     insertChat("ashley", "Hey, I can't play soccer with you today.", 0);
     insertChat("me", "Why not, what's up?", 1000);
-    insertChat("ashley", "Ugh I'm just stressed about all the assignments we have to do. I've barely slept this month, and I can't focus in class. I feel awful, I'm just going to skip class today and go home and sleep.", 3000);
-    insertChat("me", "That sucks dude. Get some rest, I'll see you tomorrow", 4200);
 
     // Now start the interactive conversation
     insertChat("ashley", root.long_msg, 4300);
@@ -138,7 +136,19 @@ var gowith = new Node("(1) I'll go with you", "Why don't I go with you?", "I wou
 var udou = new Node("(2) I understand", "I understand that. You do you, man", "*Suffers with depression for years without seeking help*", null, null);
 var uok = new Node("(1) Are you alright?", "Are you okay? It sounds like you might be depressed. I really think you should see someone about how you're feeling", "I'm just scared to talk to them... I don't want them to judge me.", gowith, udou);
 var lolyeah = new Node("(2) lol yeah", "Lol, yeah, bet. We all feel like that sometimes", "thisishack", null, null);
-var root = new Node("", "I just can't do it anymore. Do you ever feel like life isn't worth it?", "", uok, lolyeah)
+var getsleep = new Node("(1) get some sleep", "That sucks dude, get some rest. I'll see you tomorrow", "I just can't do it anymore. Do you ever feel like life isn't worth it?", uok, lolyeah);
+
+var gowith2 = new Node("(1) I'll come with you", "Why don't I go with you? It could help you feel more comfortable and open.", "Actually... I would really like that. Thank you for being there for me. *Friend seeks help and beats depression*", null, null);
+var noscare = new Node("(2) Don't be scared", "Nah man, don't be scared. You should just go talk to them! Let me know how it goes though, I have to go get lunch.", "Oh, for sure. Have fun. *Doesn't seek help and suffers from depression*", null, null)
+
+var depression = new Node("(2) Sounds like depression", "It sounds like you are becoming depressed. I think you should go talk to the counselor about how you're feeling.", "I'm just scared to go talk to them. I don't know what to say or how to approach them.", gowith2, noscare);
+var ifhw = new Node("(1) I'll let you know what happens at school", "Oh, alright. I'll let you know if we get any homework in class", "Okay, thanks. *Doesn't seek help and suffers with depression*", null, null);
+var iknow = new Node("(1) I know", "Yeah man, I know what you mean. Sounds like you just need some rest. See you tomorrow then!", "Yeah, I guess you're right. Maybe I'll feel better after sleeping. Actually, I don't think I am going to go to school tomorrow. I just can't face the day", ifhw, depression);
+var soundsserious = new Node("(2) sounds serious", "That sounds serious. Are you okay?", "You know... I'm not sure. I have just felt very overwhelmed lately and kind of worthless. I just want to sleep most days so that these feelings go away, you know?", iknow, depression);
+
+var root = new Node("", "Ugh I'm just stressed about all the assignments we have to do. I've barely slept this month, and I can't focus in class. I feel awful, I'm just going to skip class today and go home and sleep.", '', getsleep, soundsserious);
+
+
 var curnode = root;
 
 resetChat();
