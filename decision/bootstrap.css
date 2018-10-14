@@ -893,8 +893,8 @@ pre code {
   .col-sm-3 {
     -webkit-box-flex: 0;
     -ms-flex: 0 0 25%;
+    height: -webkit-fill-available;
     flex: 0 0 25%;
-    max-width: 25%;
   }
   .col-sm-4 {
     -webkit-box-flex: 0;
@@ -1296,7 +1296,6 @@ pre code {
     -webkit-box-flex: 0;
     -ms-flex: 0 0 25%;
     flex: 0 0 25%;
-    max-width: 25%;
   }
   .col-lg-4 {
     -webkit-box-flex: 0;

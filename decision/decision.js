@@ -51,7 +51,7 @@ function die() {
 
     insertChat("me", "Hey dude, where were you at school today?", 5000, "10/01 6:03 PM");
     insertChat("me", "Are you ignoring me?", 8000, '10/01 6:10 PM');
-    insertChat("me", "Hey..., is everything okay? Why haven't you been at school all week?", 11000, '10/07 9:00 PM');
+    insertChat("me", "Hey... is everything okay? Why haven't you been at school all week?", 11000, '10/07 9:00 PM');
     insertChat("me", "...Hello?", 16000, '10/10 3:14 AM');
 }
 
