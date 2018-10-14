@@ -8,23 +8,51 @@ function keypress(e) {
         var text = document.getElementById("textbox").value;
         if (text !== ""){
             console.log("you hit enter with text " + text);
-            if (text.includes("a")) {
-                curnode = curnode.left;
+            if (text.includes("1")) {
+                curnode = curnode.l;
             } else {
-                curnode = curnode.right;
+                curnode = curnode.r;
             }
 
+            send_text(curnode);
+        }
+    }
+}
 
-            insertChat("me", text);
-            document.getElementById("textbox").value = "";
+function send_text(node) {
+    // First, send our response
+    insertChat("me", node.long_msg, 1000);
 
-            if (curnode == null) {
-                resetChat();
-            } else {
-                insertChat("ashley", curnode.msg);
+    // Clear out the text box
+    document.getElementById("textbox").value = "";
+
+    // The other person has to respond to our message, and print our reply options eg:
+    // I'm glad you had a good day. Did you sleep well?
+    // (1) yes
+    // (2) no
+    if (node == null) {
+        resetChat();
+    } else {
+        if (node.response_msg == "thisishack") {
+            die();
+        } else {
+            insertChat("ashley", node.response_msg, 3000);
+
+            if (node.l != null && node.r != null) {
+                insertChat("ashley", node.l.short_msg, 3100);
+                insertChat("ashley", node.r.short_msg, 3150);
             }
         }
     }
+
+}
+
+function die() {
+
+    insertChat("me", "Hey dude, where were you at school today?", 5000, "10/01 6:03 PM");
+    insertChat("me", "Are you ignoring me?", 8000, '10/01 6:10 PM');
+    insertChat("me", "Hey..., is everything okay? Why haven't you been at school all week?", 11000, '10/07 9:00 PM');
+    insertChat("me", "...Hello?", 16000, '10/10 3:14 AM');
 }
 
 function formatAMPM(date) {
@@ -35,15 +63,17 @@ function formatAMPM(date) {
     hours = hours ? hours : 12; // the hour '0' should be '12'
     minutes = minutes < 10 ? '0'+minutes : minutes;
     var strTime = hours + ':' + minutes + ' ' + ampm;
-    return strTime;
+    return "10/01 " + strTime;
 }
 
 //-- No use time. It is a javaScript effect.
-function insertChat(who, text, time = 0){
+function insertChat(who, text, time = 0, date = 0){
     var control = "";
-    var date = formatAMPM(new Date());
+    if (date == 0) {
+        date = formatAMPM(new Date());
+    }
 
-    if (who == "me"){
+    if (who == "ashley"){
 
         control = '<li style="width:100%">' +
                         '<div class="msj macro">' +
@@ -71,35 +101,48 @@ function insertChat(who, text, time = 0){
 
 }
 
+function intro() {
+    insertChat("ashley", "Hey, I can't play soccer with you today.", 0);
+    insertChat("me", "Why not, what's up?", 1000);
+    insertChat("ashley", "Ugh I'm just stressed about all the assignments we have to do. I've barely slept this month, and I can't focus in class. I feel awful, I'm just going to skip class today and go home and sleep.", 3000);
+    insertChat("me", "That sucks dude. Get some rest, I'll see you tomorrow", 4200);
+
+    // Now start the interactive conversation
+    insertChat("ashley", root.long_msg, 4300);
+    insertChat("ashley", root.l.short_msg, 4400);
+    insertChat("ashley", root.r.short_msg, 4500);
+
+}
+
 function resetChat(){
     $("ul").empty();
     curnode = root;
 
     //-- Print Messages
-    insertChat("ashley", root.msg, 0);
+    //insertChat("ashley", root.long_msg, 0);
+    //insertChat("ashley", "(1) " + root.l.short_msg);
+    //insertChat("ashley", "(2) " + root.r.short_msg);
 }
 
 class Node {
-  constructor(msg, l, r) {
-    this.msg = msg;
-    this.right = r;
-    this.left = l;
+  constructor(short_msg, long_msg, response_msg, l, r) {
+    this.short_msg = short_msg;
+    this.long_msg = long_msg;
+    this.response_msg = response_msg;
+    this.r = r;
+    this.l = l;
   }
 }
 
-var yesdumb = new Node("It's okay that you're dumb. Everyone is a little dumb.", null, null);
-var nodumb = new Node("I'm really happy to hear that you are not dumb", null, null);
-
-var yessmart = new Node("Yay! I'm glad you're smart. Congrats.", null, null);
-var nosmart  = new Node("I'm glad that you can be having a good day enven though you r dum", null, null);
-
-var badday = new Node("I'm sorry to hear you are not having a good day... is it because you are dumb?", yesdumb, nodumb);
-var goodday = new Node("Why is your day so good? Is it because you are smart?", yessmart, nosmart);
-
-var root = new Node("Are you having a good day?", goodday, badday);
+var gowith = new Node("(1) I'll go with you", "Why don't I go with you?", "I would like that, thank you for being there for me.", null, null);
+var udou = new Node("(2) I understand", "I understand that. You do you, man", "*Suffers with depression for years without seeking help*", null, null);
+var uok = new Node("(1) Are you alright?", "Are you okay? It sounds like you might be depressed. I really think you should see someone about how you're feeling", "I'm just scared to talk to them... I don't want them to judge me.", gowith, udou);
+var lolyeah = new Node("(2) lol yeah", "Lol, yeah, bet. We all feel like that sometimes", "thisishack", null, null);
+var root = new Node("", "I just can't do it anymore. Do you ever feel like life isn't worth it?", "", uok, lolyeah)
 var curnode = root;
 
 resetChat();
+intro();
 
 
 //-- NOTE: No use time on insertChat.
