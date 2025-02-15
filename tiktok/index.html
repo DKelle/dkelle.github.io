@@ -157,6 +157,28 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
+        #timer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-family: monospace;
+            z-index: 1000;
+            display: none;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        #timer.highlight {
+            background: rgba(0, 255, 0, 0.7);
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
@@ -178,8 +200,10 @@
         let audioEnabled = false;
         let correctVideoIndex = null;
         let isProcessingClick = false;  // Add this with other global variables
+        let timerInterval = null;
+        let startTime = null;
 
-        const VALID_VIDEO_IDS = [
+        const VALID_VIDEO_IDS = [...new Set([
             'uWSsps159rw', 'c0NvRs9VU5E', 'RbFrlpJ2QTw', 'nIa7MQlG_aE',
             'TYB4ADeQsPc', 'lGjBIFFwsaM', 'gU8p7cNtGh0', 'xeIgDCBhWFY',
             '4hDqfJux47Y', 'dIbITOQC7bo', 'pDrBRGFpAlQ',
@@ -189,8 +213,25 @@
             'qQ1EZGj4QQM', 'n7zBbkU3tpc', '9n5fDmsPDQM', 'JGH14v53mC0',
             'iksz3aGb-RU', 'HAHQrfXWFV8', 'zwMEhBq4kYM', 'beNLLK6Maf0',
             'atgRjzYzprI', '5s5M7hioxlI', '_zTXv9cgyXU', 'pfltKY0kwcM',
-            'j4f1axM6Zds'
-        ];
+            'j4f1axM6Zds', '-BAM35vMpfs', 'Cuhw8DwcI3k',
+            'LvNlWkYzG9A', 'SLAo5QraPls', 'S8M27ZuBDN0', 'iIQs4OV9HvE',
+            '5q66DB8TktM', 'A4T6bI5w8N4', 'ogWL0xn4V9Q',
+            '8ra4u7WMC2A', '5inbF_s9Vcs', 'Qszn-TCLicA', '26JopeiSeUE',
+            'FVIT3XnyD7Q', 'ozu9plQIhP4', 'iiJDD-qtCuU', '0lxd7gIp-Og',
+            'TcWhujIV99M', 'VDzhIPsX8oA', 'dZceNuUnxLc', 'LUyyuUDxqNY',
+            '5TLJSrlxqXA', '8JKoFCUaUbY', 'JPjV7QBPFSI', '7D8mRkGXiL8',
+            'WCh0ZHaxfg8', 'mKoFkvXKmsY', 'h7bCLiJQ6Aw', 'Q5F4z-4cPEE',
+            'Z5UzB5yP1CI', '3eI8nyVJdJ0', 'Nct9MbA1fCs', 'Ebp-_V_3wy0',
+            'vkkuSRA6dP0', 'hAQcodpwsIA', '2np28mC5dYg', 'jofNR_WkoCE',
+            'PTiKjpQ-FUE', '9HqXNe-mBR0', 'LiXYi-_MVa4', 'b1_RKu-ESCY',
+            'o1feI8IybYs', 'C0n1O8D8CRg', 'wQSWGmpHQSI', 'jjH1bqiK0NE',
+            'cleydpnE9Sw', 'JO68Kh-JClk', 'xZ6_vGDcMKY', 's_HUU01fs38',
+            'YMDL2eWXhFM', 'OyUC21F10Oc', 'Rgi9PHkP4_0', 'MvMCFxmwcNs',
+            '3d25b2lT854', 'Y3U3jQOtjAk', '4Z9fu77rKsI', '57BLk_Ka-zI',
+            'CPVZTC0qATE', 'F4dIxethVAY', 'LS7uUddGMuM', 'a0y3Gl-z_uw',
+            'H6eugFRYevw', 'mQZrJku2P2M', 'jq4k5VNfdWM', 'dCBEaDkzjxU',
+            'aruah7TJDng'
+        ])];
 
         function initializeGrid() {
             const grid = document.getElementById('grid');
@@ -241,9 +282,13 @@
         }
 
         function handleVideoClick(containerId) {
-            if (isProcessingClick) return;  // Prevent multiple clicks during animation
+            if (isProcessingClick) return;
             isProcessingClick = true;
-
+            
+            // Stop the timer and save the final time
+            clearInterval(timerInterval);
+            const finalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+            
             const index = parseInt(containerId.split('-')[1]);
             const clickedOverlay = document.querySelector(`#${containerId} .video-overlay`);
             const correctOverlay = document.querySelector(`#player-${correctVideoIndex} .video-overlay`);
@@ -256,11 +301,10 @@
 
             // Show result animations
             if (index === correctVideoIndex) {
-                // If correct guess, just show green flash
                 clickedOverlay.classList.add('clicked-correct');
                 console.log('Correct guess!');
+                document.getElementById('timer').textContent = `Found in ${finalTime}s`;
             } else {
-                // If wrong guess, show red flash on clicked and green on correct
                 clickedOverlay.classList.add('clicked-wrong');
                 correctOverlay.classList.add('clicked-correct');
                 console.log('Wrong guess!');
@@ -299,6 +343,7 @@
         function startGame() {
             audioEnabled = true;
             document.getElementById('startOverlay').style.display = 'none';
+            document.getElementById('timer').style.display = 'block';
             refreshAllVideos();
         }
 
@@ -390,6 +435,9 @@
 
                 playAllVideos();
 
+                // Start the timer after videos are loaded
+                startTimer();
+
             } catch (error) {
                 console.error('Error refreshing videos:', error);
                 document.getElementById('loading').textContent = 'Error loading videos. Please try again.';
@@ -402,6 +450,22 @@
             // Don't auto-start, wait for user interaction
             document.getElementById('grid').style.display = 'none';
         };
+
+        function startTimer() {
+            startTime = Date.now();
+            const timerElement = document.getElementById('timer');
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const seconds = (elapsed / 1000).toFixed(1);
+                timerElement.textContent = `${seconds}s`;
+            }, 100);
+        }
     </script>
+    <div id="timer">0.0s</div>
 </body>
 </html> 
