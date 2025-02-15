@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YouTube Shorts Grid</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #000;
+        }
+
+        .grid-container {
+            width: 100vw;
+            height: 100vh;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 4px;
+            padding: 4px;
+            box-sizing: border-box;
+        }
+
+        .video-container {
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.3s;
+            position: relative;
+        }
+
+        .video-container.loaded {
+            opacity: 1;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            z-index: 10;
+            border: 2px solid transparent;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .video-overlay:hover {
+            border-color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .video-overlay.clicked-correct {
+            animation: correctFlash 0.5s ease;
+        }
+
+        .video-overlay.clicked-wrong {
+            animation: wrongFlash 0.5s ease;
+        }
+
+        @keyframes correctFlash {
+            0% {
+                background: rgba(0, 255, 0, 0.4);
+                border-color: #00ff00;
+            }
+            100% {
+                background: rgba(0, 255, 0, 0);
+                border-color: transparent;
+            }
+        }
+
+        @keyframes wrongFlash {
+            0% {
+                background: rgba(255, 0, 0, 0.4);
+                border-color: #ff0000;
+            }
+            100% {
+                background: rgba(255, 0, 0, 0);
+                border-color: transparent;
+            }
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            pointer-events: none;
+            object-fit: cover;
+        }
+
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+        }
+
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 20;
+            display: none;
+        }
+
+        .video-container.chosen .play-button {
+            display: block;
+        }
+
+        .start-game-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .start-button {
+            background: #ff0000;
+            color: white;
+            padding: 20px 40px;
+            font-size: 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Position the refresh button */
+        button {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 101;
+            padding: 10px 20px;
+            background: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">Loading videos...</div>
+    <div class="grid-container" id="grid" style="display: none;"></div>
+    <button onclick="refreshAllVideos()" style="display: none;">Refresh All</button>
+
+    <div class="start-game-overlay" id="startOverlay">
+        <button class="start-button" onclick="startGame()">Start Game</button>
+    </div>
+
+    <!-- Add YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        const API_KEY = 'AIzaSyAHMSNdadHrIWh-bO7geX0r6zVRWodthTs';
+        const GRID_SIZE = 10;
+        
+        let players = [];  // Add this at the top of the script section to store player references
+        let audioEnabled = false;
+        let correctVideoIndex = null;
+        let isProcessingClick = false;  // Add this with other global variables
+
+        const VALID_VIDEO_IDS = [
+            'uWSsps159rw', 'c0NvRs9VU5E', 'RbFrlpJ2QTw', 'nIa7MQlG_aE',
+            'TYB4ADeQsPc', 'lGjBIFFwsaM', 'gU8p7cNtGh0', 'xeIgDCBhWFY',
+            '4hDqfJux47Y', 'dIbITOQC7bo', 'pDrBRGFpAlQ',
+            '9FDVvWR91ww', 'ukK_aHwnY9w', 'OBqyh1lOVYk', 'Cute2zWbQik',
+            'tGhsjfKW5i8', 'Wc7zDSq-2bo', '44K8Nt5HeWg',
+            '2ZsJHNVq7CY', 'J0iIQ629N2c', 'LrhLGL9E4CI',
+            'qQ1EZGj4QQM', 'n7zBbkU3tpc', '9n5fDmsPDQM', 'JGH14v53mC0',
+            'iksz3aGb-RU', 'HAHQrfXWFV8', 'zwMEhBq4kYM', 'beNLLK6Maf0',
+            'atgRjzYzprI', '5s5M7hioxlI', '_zTXv9cgyXU', 'pfltKY0kwcM',
+            'j4f1axM6Zds'
+        ];
+
+        function initializeGrid() {
+            const grid = document.getElementById('grid');
+            for (let i = 0; i < GRID_SIZE; i++) {
+                const container = document.createElement('div');
+                container.className = 'video-container';
+                container.id = `player-${i}`;
+                grid.appendChild(container);
+            }
+        }
+
+        function getRandomVideoIds(count) {
+            // Shuffle array and take 'count' items
+            const shuffled = [...VALID_VIDEO_IDS].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        function createPlayerPromise(videoId, containerId) {
+            return new Promise((resolve, reject) => {
+                const container = document.getElementById(containerId);
+                container.innerHTML = `
+                    <iframe 
+                        id="iframe-${containerId}"
+                        width="100%"
+                        height="100%"
+                        src="https://www.youtube.com/embed/${videoId}?enablejsapi=1&controls=0&playsinline=1&modestbranding=1&rel=0&loop=1&autoplay=1&mute=1"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
+                    <div class="video-overlay" onclick="handleVideoClick('${containerId}')"></div>
+                    <div class="play-button" onclick="startWithSound('${containerId}')">Play with Sound</div>`;
+                const player = new YT.Player(`iframe-${containerId}`, {
+                    events: {
+                        onReady: () => {
+                            console.log('player ready', containerId);
+                            player.playVideo();  // Explicitly call playVideo when ready
+                            players[containerId] = player;
+                            resolve(true);
+                        },
+                        onError: (event) => {
+                            console.error(`Player error for ${containerId}:`, event);
+                            reject(new Error('Player failed to load'));
+                        }
+                    }
+                });
+            });
+        }
+
+        function handleVideoClick(containerId) {
+            if (isProcessingClick) return;  // Prevent multiple clicks during animation
+            isProcessingClick = true;
+
+            const index = parseInt(containerId.split('-')[1]);
+            const clickedOverlay = document.querySelector(`#${containerId} .video-overlay`);
+            const correctOverlay = document.querySelector(`#player-${correctVideoIndex} .video-overlay`);
+            
+            // Remove any existing animation classes
+            document.querySelectorAll('.video-overlay').forEach(overlay => {
+                overlay.classList.remove('clicked-correct', 'clicked-wrong');
+            });
+            void clickedOverlay.offsetWidth; // Force reflow
+
+            // Show result animations
+            if (index === correctVideoIndex) {
+                // If correct guess, just show green flash
+                clickedOverlay.classList.add('clicked-correct');
+                console.log('Correct guess!');
+            } else {
+                // If wrong guess, show red flash on clicked and green on correct
+                clickedOverlay.classList.add('clicked-wrong');
+                correctOverlay.classList.add('clicked-correct');
+                console.log('Wrong guess!');
+            }
+            
+            // Remove animation classes and start new round
+            setTimeout(() => {
+                document.querySelectorAll('.video-overlay').forEach(overlay => {
+                    overlay.classList.remove('clicked-correct', 'clicked-wrong');
+                });
+                // Wait a moment after animation before refreshing
+                setTimeout(() => {
+                    isProcessingClick = false;  // Reset click processing
+                    refreshAllVideos();
+                }, 200);
+            }, 500);
+
+            // Log the video ID
+            const player = players[containerId];
+            if (player && player.getVideoData) {
+                const videoData = player.getVideoData();
+                console.log(`Clicked video ID: ${videoData.video_id}`);
+            }
+        }
+
+        function startWithSound(containerId) {
+            const player = players[containerId];
+            if (player && typeof player.playVideo === 'function') {
+                player.unMute();
+                player.setVolume(100);
+                player.seekTo(0);
+                player.playVideo();
+            }
+        }
+
+        function startGame() {
+            audioEnabled = true;
+            document.getElementById('startOverlay').style.display = 'none';
+            refreshAllVideos();
+        }
+
+        function playAllVideos() {
+            const playerArray = Object.values(players);
+            if (playerArray.length === 0) return;
+
+            // Start all videos
+            playerArray.forEach((player, index) => {
+                if (player && typeof player.playVideo === 'function') {
+                    console.log('starting video', index);
+                    player.setVolume(100);
+                    player.playVideo();
+                }
+            });
+
+            if (audioEnabled) {
+                // Choose one random video to unmute
+                correctVideoIndex = Math.floor(Math.random() * playerArray.length);
+                console.log('Unmuting video', correctVideoIndex);
+                const chosenPlayer = playerArray[correctVideoIndex];
+                if (chosenPlayer) {
+                    chosenPlayer.unMute();
+                    chosenPlayer.setVolume(100);
+                }
+            }
+        }
+
+        async function getFirstNSuccessful(videoIds, n) {
+            const results = [];
+            const remaining = [...videoIds];
+            const promises = [];
+
+            // Create all player promises
+            for (let i = 0; i < videoIds.length; i++) {
+                const promise = createPlayerPromise(videoIds[i], `player-${i}`);
+                promises.push(promise);
+            }
+
+            while (results.length < n && remaining.length > 0) {
+                try {
+                    const result = await Promise.race(promises.map((p, i) => 
+                        p.then(() => ({ success: true, index: i }))
+                         .catch(() => ({ success: false, index: i }))
+                    ));
+
+                    if (result.success) {
+                        results.push(result.index);
+                    }
+                    
+                    // Remove the processed promise
+                    promises.splice(result.index, 1);
+                    remaining.splice(result.index, 1);
+                } catch (error) {
+                    console.error('Error in race:', error);
+                }
+            }
+
+            return results;
+        }
+
+        async function refreshAllVideos() {
+            try {
+                players = [];
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('grid').style.display = 'none';
+                document.querySelector('button').style.display = 'none';
+
+                const videoIds = getRandomVideoIds(GRID_SIZE);
+                console.log('videoIds', videoIds);
+                
+                // Create all players simultaneously
+                const promises = videoIds.map((videoId, index) => 
+                    createPlayerPromise(videoId, `player-${index}`)
+                );
+                
+                await Promise.all(promises);
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('grid').style.display = 'grid';
+                document.querySelector('button').style.display = 'block';
+
+                // Show the containers
+                document.querySelectorAll('.video-container').forEach((container) => {
+                    container.classList.add('loaded');
+                });
+
+                playAllVideos();
+
+            } catch (error) {
+                console.error('Error refreshing videos:', error);
+                document.getElementById('loading').textContent = 'Error loading videos. Please try again.';
+            }
+        }
+
+        // Wait for YouTube API to load
+        window.onYouTubeIframeAPIReady = function() {
+            initializeGrid();
+            // Don't auto-start, wait for user interaction
+            document.getElementById('grid').style.display = 'none';
+        };
+    </script>
+</body>
+</html> 
