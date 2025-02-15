@@ -1,157 +1,232 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quiz</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f2f2f2;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .quiz-container {
-      background-color: #fff;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      text-align: center;
-      max-width: 600px;
-      width: 100%;
-    }
-    h1 {
-      margin-top: 0;
-    }
-    .options {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .option {
-      background-color: #007bff;
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 5px;
-      margin: 10px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    .option:hover {
-      background-color: #0056b3;
-    }
-    @keyframes shake {
-      0% { transform: translateX(0); }
-      25% { transform: translateX(-10px); }
-      50% { transform: translateX(10px); }
-      75% { transform: translateX(-10px); }
-      100% { transform: translateX(0); }
-    }
-    @keyframes fireworks {
-      0% { opacity: 0; }
-      50% { opacity: 1; }
-      100% { opacity: 0; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .quiz-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: #1a1a1a;
+            line-height: 1.4;
+        }
+
+        .options {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+        }
+
+        .option {
+            background: transparent;
+            color: #1a1a1a;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 2px solid #e9ecef;
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option:hover {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+            transform: translateY(-2px);
+        }
+
+        .option.correct {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .option.incorrect {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: #e9ecef;
+            width: 100%;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #228be6;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @media (max-width: 480px) {
+            .quiz-container {
+                padding: 1.5rem;
+                border-radius: 15px;
+            }
+
+            h1 {
+                font-size: 1.25rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .option {
+                padding: 0.875rem 1.25rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="quiz-container">
-    <h1 id="question"></h1>
-    <div class="options" id="options"></div>
-  </div>
+    <div class="quiz-container">
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        <h1 id="question"></h1>
+        <div class="options" id="options"></div>
+    </div>
 
-  <script>
-    const questions = [
-      {
-        question: "What is the final evolution of Impidimp",
-        answers: ["Muk", "Grimer", "Grimsnarl", "Pawnard"],
-        correctAnswer: "Grimsnarl"
-      },
-      {
-        question: "What is the final evolution of Pawmi?",
-        answers: ["Pawmo", "Pawmot", "Greedent", "Sunflora"],
-        correctAnswer: "Pawmot"
-      },
-      {
-        question: "Where is Roaring Moon found?",
-        answers: ["Area Zero", "East Province Area Three", "West Province Area 4", "Ice Type Gym"],
-        correctAnswer: "Area Zero"
-      },
-      {
-        question: "What does Paldean Wooper evolve into?",
-        answers: ["Happiny", "Azurill", "Maushold", "Clodsire"],
-        correctAnswer: "Clodsire"
-      },
-      {
-        question: "Which pokemon has the highest attack stat in Pokemon Scarlet?",
-        answers: ["Palafin", "Baxcalibur", "Koraidon", "Roaring Moon"],
-        correctAnswer: "Palafin"
-      },
-      {
-        question: "What is the water type start in Pokemon Scarlet and Violet",
-        answers: ["Sprigatito", "Fuecoco", "Quaxly", "Lechonk"],
-        correctAnswer: "Quaxly"
-      },
-      {
-        question: "What does Gastly evolve into?",
-        answers: ["Haunter", "Gengar", "Raichu", "Sudowoodo"],
-        correctAnswer: "Haunter"
-      },
-      {
-        question: "What color is the fur over Great Tusk's feet?",
-        answers: ["Red", "Pink", "Blue", "Brown"],
-        correctAnswer: "Pink"
-      },
-      // Add more questions as needed
-    ];
+    <script>
+        const questions = [
+            {
+                question: "What is the final evolution of Impidimp?",
+                answers: ["Muk", "Grimer", "Grimsnarl", "Pawnard"],
+                correctAnswer: "Grimsnarl"
+            },
+            {
+                question: "What is the final evolution of Pawmi?",
+                answers: ["Pawmo", "Pawmot", "Greedent", "Sunflora"],
+                correctAnswer: "Pawmot"
+            },
+            {
+                question: "Where is Roaring Moon found?",
+                answers: ["Area Zero", "East Province Area Three", "West Province Area 4", "Ice Type Gym"],
+                correctAnswer: "Area Zero"
+            },
+            {
+                question: "What does Paldean Wooper evolve into?",
+                answers: ["Happiny", "Azurill", "Maushold", "Clodsire"],
+                correctAnswer: "Clodsire"
+            },
+            {
+                question: "Which pokemon has the highest attack stat in Pokemon Scarlet?",
+                answers: ["Palafin", "Baxcalibur", "Koraidon", "Roaring Moon"],
+                correctAnswer: "Palafin"
+            }
+        ];
 
-    let currentQuestionIndex = 0;
+        let currentQuestionIndex = 0;
 
-    function displayQuestion() {
-      const currentQuestion = questions[currentQuestionIndex];
-      document.getElementById('question').textContent = currentQuestion.question;
-      const optionsContainer = document.getElementById('options');
-      optionsContainer.innerHTML = '';
-      currentQuestion.answers.forEach(answer => {
-        const option = document.createElement('div');
-        option.textContent = answer;
-        option.className = 'option';
-        option.addEventListener('click', () => checkAnswer(answer));
-        optionsContainer.appendChild(option);
-      });
-    }
+        function updateProgressBar() {
+            const progress = (currentQuestionIndex / questions.length) * 100;
+            document.querySelector('.progress-fill').style.width = `${progress}%`;
+        }
 
-    function checkAnswer(selectedAnswer) {
-      const currentQuestion = questions[currentQuestionIndex];
-      if (selectedAnswer === currentQuestion.correctAnswer) {
-        document.querySelector('.quiz-container').style.animation = 'fireworks 0.5s ease-in-out'; // Trigger fireworks animation
-        setTimeout(() => {
-          document.querySelector('.quiz-container').style.animation = ''; // Reset animation after 0.5s
-          currentQuestionIndex++;
-          if (currentQuestionIndex < questions.length) {
-            displayQuestion();
-          } else {
-            alert('Congratulations! You have completed the quiz.');
-            // Optionally, you can reset the quiz here
-            // currentQuestionIndex = 0;
-            // displayQuestion();
-          }
-        }, 500);
-      } else {
-        document.querySelector('.quiz-container').style.animation = 'shake 0.5s ease-in-out'; // Trigger shake animation
-        setTimeout(() => {
-          document.querySelector('.quiz-container').style.animation = ''; // Reset animation after 0.5s
-        }, 500);
-      }
-    }
+        function displayQuestion() {
+            const currentQuestion = questions[currentQuestionIndex];
+            document.getElementById('question').textContent = currentQuestion.question;
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            currentQuestion.answers.forEach(answer => {
+                const option = document.createElement('button');
+                option.textContent = answer;
+                option.className = 'option fade-in';
+                option.addEventListener('click', () => checkAnswer(answer, option));
+                optionsContainer.appendChild(option);
+            });
 
-    // Initial display of the first question
-    displayQuestion();
-  </script>
+            updateProgressBar();
+        }
+
+        function checkAnswer(selectedAnswer, selectedOption) {
+            const currentQuestion = questions[currentQuestionIndex];
+            const allOptions = document.querySelectorAll('.option');
+            
+            // Disable all options temporarily
+            allOptions.forEach(opt => opt.style.pointerEvents = 'none');
+
+            if (selectedAnswer === currentQuestion.correctAnswer) {
+                selectedOption.classList.add('correct');
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    if (currentQuestionIndex < questions.length) {
+                        displayQuestion();
+                    } else {
+                        document.querySelector('.quiz-container').innerHTML = `
+                            <h1 style="text-align: center;">Congratulations! 🎉<br>You've completed the quiz!</h1>
+                        `;
+                    }
+                }, 1000);
+            } else {
+                selectedOption.classList.add('incorrect');
+                selectedOption.classList.add('shake');
+                setTimeout(() => {
+                    selectedOption.classList.remove('incorrect', 'shake');
+                    allOptions.forEach(opt => opt.style.pointerEvents = 'auto');
+                }, 1000);
+            }
+        }
+
+        // Initial display
+        displayQuestion();
+    </script>
 </body>
 </html>
 
