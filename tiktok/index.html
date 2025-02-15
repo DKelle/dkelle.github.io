@@ -171,7 +171,7 @@
     <!-- Add YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-        const API_KEY = 'AIzaSyAHMSNdadHrIWh-bO7geX0r6zVRWodthTs';
+        const API_KEY = 'AIzaSyAp6l8nYAg2SekmaD5L2I7e1M1dR_PkSvI';
         const GRID_SIZE = 10;
         
         let players = [];  // Add this at the top of the script section to store player references
@@ -307,8 +307,9 @@
             if (playerArray.length === 0) return;
 
             // Start all videos
-            playerArray.forEach((player, index) => {
+            Object.entries(players).forEach(([containerId, player]) => {
                 if (player && typeof player.playVideo === 'function') {
+                    const index = parseInt(containerId.split('-')[1]);
                     console.log('starting video', index);
                     player.setVolume(100);
                     player.playVideo();
@@ -316,10 +317,11 @@
             });
 
             if (audioEnabled) {
-                // Choose one random video to unmute
-                correctVideoIndex = Math.floor(Math.random() * playerArray.length);
+                // Choose one random video from the successfully loaded players
+                const availableIndices = Object.keys(players).map(id => parseInt(id.split('-')[1]));
+                correctVideoIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
                 console.log('Unmuting video', correctVideoIndex);
-                const chosenPlayer = playerArray[correctVideoIndex];
+                const chosenPlayer = players[`player-${correctVideoIndex}`];
                 if (chosenPlayer) {
                     chosenPlayer.unMute();
                     chosenPlayer.setVolume(100);
