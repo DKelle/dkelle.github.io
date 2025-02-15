@@ -2,7 +2,6 @@
 <html>
 <head>
     <title>YouTube Shorts Grid</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         :root {
             --header-height: 70px;
@@ -14,6 +13,102 @@
             --color-primary: #ff0000;
             --color-success: rgba(0, 255, 0, 0.2);
             --color-overlay: rgba(255, 255, 255, 0.1);
+            --header-background: rgba(0, 0, 0, 0.9);
+        }
+
+        @media screen and (max-width: 768px) {
+            :root {
+                --header-height: 120px;
+                --header-background: #ff0000;
+            }
+
+            .header-bar {
+                background: var(--header-background) !important;
+                padding: 0 15px;
+                height: var(--header-height);
+                min-height: 10vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .streak-container {
+                background: rgba(0, 0, 0, 0.4);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 15px 25px;
+                border-radius: 25px;
+                gap: 25px;
+                margin: 0;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                transform: scale(1.6);
+            }
+
+            .streak-box {
+                background: rgba(255, 255, 255, 0.08);
+                padding: 12px 25px;
+                border-radius: 20px;
+                font-size: 2em;
+                min-width: 80px;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                transition: transform 0.2s ease;
+            }
+
+            .streak-box:active {
+                transform: scale(0.95);
+            }
+
+            .streak-icon {
+                font-size: 1.4em;
+            }
+
+            .streak-count {
+                font-size: 1.2em;
+                font-weight: 700;
+            }
+
+            #timer {
+                background: rgba(255, 255, 255, 0.08);
+                padding: 12px 25px;
+                border-radius: 20px;
+                font-size: 2em;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                min-width: 130px;
+            }
+
+            #timer::before {
+                font-size: 1.4em;
+            }
+
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr) !important;
+                grid-template-rows: repeat(3, 1fr) !important;
+                height: calc(90vh - var(--header-height));
+                margin-top: var(--header-height);
+            }
+
+            /* Hide extra video containers on mobile */
+            .video-container:nth-child(n+7) {
+                display: none;
+            }
+
+            #timer.highlight {
+                background: rgba(0, 255, 0, 0.15);
+                border-color: rgba(0, 255, 0, 0.2);
+                box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+            }
+
+            .streak-box.highlight {
+                background: rgba(255, 165, 0, 0.15);
+                border-color: rgba(255, 165, 0, 0.2);
+                box-shadow: 0 0 15px rgba(255, 165, 0, 0.2);
+            }
+
+            /* Improve touch feedback */
+            .streak-container * {
+                -webkit-tap-highlight-color: transparent;
+            }
         }
 
         body {
@@ -25,8 +120,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: var(--color-background);
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
         }
 
         .grid-container {
@@ -35,8 +129,8 @@
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             grid-template-rows: repeat(2, 1fr);
-            gap: var(--grid-gap);
-            padding: var(--grid-gap);
+            gap: 4px;
+            padding: 4px;
             box-sizing: border-box;
             margin-top: var(--header-height);
         }
@@ -67,8 +161,8 @@
         }
 
         .video-overlay:hover {
-            border-color: var(--color-text);
-            background: var(--color-overlay);
+            border-color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .video-overlay.clicked-correct {
@@ -114,12 +208,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 20px;
-            color: var(--color-text);
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: var(--border-radius-md);
-            z-index: 1000;
+            font-size: 24px;
         }
 
         .play-button {
@@ -154,32 +243,32 @@
         }
 
         .start-button {
-            background: var(--color-primary);
-            color: var(--color-text);
-            padding: 16px 32px;
-            font-size: 20px;
+            background: #ff0000;
+            color: white;
+            padding: 20px 40px;
+            font-size: 24px;
             border: none;
-            border-radius: var(--border-radius-md);
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.3s ease;
         }
 
-        .refresh-button {
+        /* Position the refresh button */
+        button {
             position: fixed;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 101;
             padding: 10px 20px;
-            background: var(--color-primary);
-            color: var(--color-text);
+            background: #ff0000;
+            color: white;
             border: none;
-            border-radius: var(--border-radius-md);
+            border-radius: 5px;
             cursor: pointer;
         }
 
         #timer {
-            color: var(--color-text);
+            color: white;
             padding: 5px 15px;
             border-radius: 12px;
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -206,31 +295,29 @@
 
         .streak-container {
             display: flex;
-            gap: 12px;
-            background: var(--color-overlay);
-            padding: 8px 16px;
-            border-radius: var(--border-radius-lg);
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 25px;
+            border-radius: 20px;
             transition: all 0.3s ease;
             align-items: center;
-            width: 100%;
-            max-width: 400px;
-            justify-content: space-between;
+            margin: 0 auto;
         }
 
-        .streak-box, #timer {
-            color: var(--color-text);
+        .streak-box {
+            color: white;
             padding: 5px 12px;
-            border-radius: var(--border-radius-md);
+            border-radius: 12px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             font-weight: 600;
-            font-size: 1.1em;
+            font-size: 1.2em;
             display: flex;
             align-items: center;
             gap: 8px;
             transition: all 0.3s ease;
-            background: var(--color-overlay);
+            background: rgba(255, 255, 255, 0.1);
             min-width: 60px;
             justify-content: center;
-            white-space: nowrap;
         }
 
         .streak-box.highlight {
@@ -240,7 +327,7 @@
         }
 
         .streak-icon {
-            font-size: 1.2em;
+            font-size: 1.3em;
         }
 
         .streak-count {
@@ -258,69 +345,23 @@
             animation: streakPulse 0.5s ease;
         }
 
+        /* Add header bar */
         .header-bar {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             height: var(--header-height);
-            background: rgba(0, 0, 0, 0.9);
+            background: var(--header-background);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            padding: 0 15px;
+            padding: 0 30px;
             z-index: 1000;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        @media (max-width: 768px) {
-            :root {
-                --header-height: 60px;
-            }
-
-            .grid-container {
-                grid-template-columns: repeat(2, 1fr);
-                grid-template-rows: repeat(3, 1fr);
-                height: calc(100vh - var(--header-height) - 80px);
-                margin-bottom: 80px; /* Space for refresh button */
-            }
-
-            .streak-container {
-                padding: 6px 12px;
-                gap: 8px;
-            }
-
-            .streak-box, #timer {
-                padding: 4px 8px;
-                font-size: 1em;
-                min-width: 50px;
-            }
-
-            .streak-icon {
-                font-size: 1.1em;
-            }
-
-            .start-button {
-                padding: 12px 24px;
-                font-size: 18px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .grid-container {
-                grid-template-columns: repeat(2, 1fr);
-                grid-template-rows: repeat(3, 1fr);
-                height: calc(100vh - var(--header-height) - 80px);
-            }
-
-            .streak-box, #timer {
-                padding: 4px 6px;
-                font-size: 0.9em;
-                min-width: 45px;
-            }
         }
     </style>
 </head>
@@ -340,7 +381,7 @@
         </div>
     </div>
     <div class="grid-container" id="grid" style="display: none;"></div>
-    <button class="refresh-button" onclick="refreshAllVideos()" style="display: none;">Refresh All</button>
+    <button onclick="refreshAllVideos()" style="display: none;">Refresh All</button>
 
     <div class="start-game-overlay" id="startOverlay">
         <button class="start-button" onclick="startGame()">Start Game</button>
@@ -350,12 +391,56 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         const API_KEY = 'AIzaSyAp6l8nYAg2SekmaD5L2I7e1M1dR_PkSvI';
-        let GRID_SIZE = 10; // Make this variable as it will change based on screen size
+        const DESKTOP_GRID_SIZE = 10;
+        const MOBILE_GRID_SIZE = 6;
         
-        let players = [];
+        // Function to check if device is mobile
+        function isMobileDevice() {
+            return window.matchMedia('(max-width: 768px)').matches || 
+                   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        let GRID_SIZE = isMobileDevice() ? MOBILE_GRID_SIZE : DESKTOP_GRID_SIZE;
+        
+        // Add resize handler with debouncing
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                const shouldBeMobile = isMobileDevice();
+                const newGridSize = shouldBeMobile ? MOBILE_GRID_SIZE : DESKTOP_GRID_SIZE;
+                
+                if (newGridSize !== GRID_SIZE) {
+                    console.log('Switching to ' + (shouldBeMobile ? 'mobile' : 'desktop') + ' layout');
+                    GRID_SIZE = newGridSize;
+                    
+                    // Clean up existing players
+                    Object.entries(players).forEach(([id, player]) => {
+                        if (player && typeof player.destroy === 'function') {
+                            player.destroy();
+                        }
+                    });
+                    players = {};
+                    
+                    // Force grid layout update
+                    const grid = document.getElementById('grid');
+                    if (shouldBeMobile) {
+                        grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                        grid.style.gridTemplateRows = 'repeat(3, 1fr)';
+                    } else {
+                        grid.style.gridTemplateColumns = 'repeat(5, 1fr)';
+                        grid.style.gridTemplateRows = 'repeat(2, 1fr)';
+                    }
+                    
+                    refreshAllVideos();
+                }
+            }, 250);
+        });
+
+        let players = {};  // Changed from array to object
         let audioEnabled = false;
         let correctVideoIndex = null;
-        let isProcessingClick = false;
+        let isProcessingClick = false;  // Add this with other global variables
         let timerInterval = null;
         let startTime = null;
         let currentStreak = 0;
@@ -392,27 +477,31 @@
         ])];
 
         function initializeGrid() {
-            // Detect if mobile
-            const isMobile = window.innerWidth <= 768;
-            
-            // Set grid size based on device
-            GRID_SIZE = isMobile ? 6 : 10; // 6 for mobile (2x3), 10 for desktop (5x2)
-
             const grid = document.getElementById('grid');
             grid.innerHTML = ''; // Clear existing grid
             
+            // Update grid layout based on device
+            const isMobile = isMobileDevice();
+            GRID_SIZE = isMobile ? MOBILE_GRID_SIZE : DESKTOP_GRID_SIZE;
+            
+            // Set grid layout
+            if (isMobile) {
+                grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                grid.style.gridTemplateRows = 'repeat(3, 1fr)';
+            } else {
+                grid.style.gridTemplateColumns = 'repeat(5, 1fr)';
+                grid.style.gridTemplateRows = 'repeat(2, 1fr)';
+            }
+            
+            // Create only the number of containers needed
             for (let i = 0; i < GRID_SIZE; i++) {
                 const container = document.createElement('div');
                 container.className = 'video-container';
                 container.id = `player-${i}`;
-                
-                // Add placeholder for iframe
-                container.innerHTML = `
-                    <div class="video-overlay" onclick="handleVideoClick('${container.id}')"></div>
-                    <div class="play-button" onclick="startWithSound('${container.id}')">Play with Sound</div>`;
-                
                 grid.appendChild(container);
             }
+            
+            console.log(`Initialized ${isMobile ? 'mobile' : 'desktop'} grid with ${GRID_SIZE} videos`);
         }
 
         function getRandomVideoIds(count) {
@@ -421,57 +510,76 @@
             return shuffled.slice(0, count);
         }
 
-        function createPlayerPromise(videoId, containerId) {
+        function createPlayerPromise(videoId, containerId, retryCount = 0) {
             return new Promise((resolve, reject) => {
                 const container = document.getElementById(containerId);
-                if (!container) {
-                    reject(new Error(`Container ${containerId} not found`));
-                    return;
-                }
+                
+                // Clear any existing content
+                container.innerHTML = `
+                    <iframe 
+                        id="iframe-${containerId}"
+                        width="100%"
+                        height="100%"
+                        src="https://www.youtube.com/embed/${videoId}?enablejsapi=1&controls=0&playsinline=1&modestbranding=1&rel=0&loop=1&mute=1"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
+                    <div class="video-overlay" onclick="handleVideoClick('${containerId}')"></div>
+                    <div class="play-button" onclick="startWithSound('${containerId}')">Play with Sound</div>`;
 
-                // Create iframe if it doesn't exist
-                let iframe = container.querySelector('iframe');
-                if (!iframe) {
-                    iframe = document.createElement('iframe');
-                    iframe.id = `iframe-${containerId}`;
-                    container.insertBefore(iframe, container.firstChild);
-                }
-
-                // Set iframe attributes
-                iframe.width = '100%';
-                iframe.height = '100%';
-                iframe.src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&controls=0&playsinline=1&modestbranding=1&rel=0&loop=1&autoplay=1&mute=1`;
-                iframe.frameBorder = '0';
-                iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-                iframe.allowFullscreen = true;
-
+                let timeoutId;
+                
                 const player = new YT.Player(`iframe-${containerId}`, {
                     events: {
                         onReady: () => {
-                            console.log('player ready', containerId);
+                            clearTimeout(timeoutId);
+                            console.log('Player ready:', containerId);
                             players[containerId] = player;
-                            player.playVideo();
+                            container.classList.add('loaded');
                             resolve(true);
                         },
                         onError: (event) => {
+                            clearTimeout(timeoutId);
                             console.error(`Player error for ${containerId}:`, event);
-                            reject(new Error('Player failed to load'));
+                            handlePlayerError(videoId, containerId, retryCount, reject);
                         },
                         onStateChange: (event) => {
                             if (event.data === YT.PlayerState.ENDED) {
-                                player.playVideo(); // Replay when ended
+                                player.playVideo();
                             }
                         }
                     }
                 });
 
-                // Add timeout to reject if player takes too long to load
-                setTimeout(() => {
-                    if (!players[containerId]) {
-                        reject(new Error('Player load timeout'));
-                    }
-                }, 10000);
+                // Increased timeout to 8 seconds
+                timeoutId = setTimeout(() => {
+                    handlePlayerError(videoId, containerId, retryCount, reject);
+                }, 8000);
             });
+        }
+
+        function handlePlayerError(videoId, containerId, retryCount, reject) {
+            const maxRetries = 2;
+            if (retryCount < maxRetries) {
+                console.log(`Retrying player ${containerId}, attempt ${retryCount + 1}`);
+                // Clean up the failed player
+                if (players[containerId]) {
+                    try {
+                        players[containerId].destroy();
+                    } catch (e) {
+                        console.error('Error destroying player:', e);
+                    }
+                    delete players[containerId];
+                }
+                // Try with a new video ID
+                const newVideoId = getRandomVideoIds(1)[0];
+                createPlayerPromise(newVideoId, containerId, retryCount + 1)
+                    .then(() => console.log(`Successfully loaded player ${containerId} on retry`))
+                    .catch(error => reject(error));
+            } else {
+                reject(new Error(`Failed to load player after ${maxRetries} retries`));
+            }
         }
 
         function handleVideoClick(containerId) {
@@ -480,6 +588,13 @@
             
             clearInterval(timerInterval);
             const finalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+            
+            // Immediately stop all videos
+            Object.values(players).forEach(player => {
+                if (player && typeof player.stopVideo === 'function') {
+                    player.stopVideo();
+                }
+            });
             
             const index = parseInt(containerId.split('-')[1]);
             const clickedOverlay = document.querySelector(`#${containerId} .video-overlay`);
@@ -491,11 +606,8 @@
             void clickedOverlay.offsetWidth;
 
             if (index === correctVideoIndex) {
-                // Correct guess
                 clickedOverlay.classList.add('clicked-correct');
                 document.getElementById('timer').textContent = `Found in ${finalTime}s`;
-                
-                // Update streak
                 currentStreak++;
                 if (currentStreak > bestStreak) {
                     bestStreak = currentStreak;
@@ -506,35 +618,42 @@
                     }, 1000);
                 }
                 
-                // Update streak display with animation
                 const currentStreakElement = document.querySelector('.current-streak');
                 currentStreakElement.classList.add('streak-pulse');
                 currentStreakElement.querySelector('.streak-count').textContent = currentStreak;
-                
-                // Add emojis based on streak milestones
                 updateStreakEmoji();
-                
             } else {
-                // Wrong guess
                 clickedOverlay.classList.add('clicked-wrong');
                 correctOverlay.classList.add('clicked-correct');
-                
-                // Reset streak
                 currentStreak = 0;
                 document.querySelector('.current-streak .streak-count').textContent = '0';
                 document.querySelector('.current-streak .streak-icon').textContent = '🔥';
             }
             
-            // Remove animation classes
+            // Clean up and prepare for next round
             setTimeout(() => {
                 document.querySelector('.current-streak').classList.remove('streak-pulse');
+                
+                // Clean up existing players
+                Object.entries(players).forEach(([id, player]) => {
+                    if (player && typeof player.destroy === 'function') {
+                        player.destroy();
+                    }
+                    const container = document.getElementById(id);
+                    if (container) {
+                        container.innerHTML = '';
+                        container.classList.remove('loaded');
+                    }
+                });
+                players = {};
+                
+                // Reset overlays
                 document.querySelectorAll('.video-overlay').forEach(overlay => {
                     overlay.classList.remove('clicked-correct', 'clicked-wrong');
                 });
-                setTimeout(() => {
-                    isProcessingClick = false;
-                    refreshAllVideos();
-                }, 200);
+                
+                isProcessingClick = false;
+                refreshAllVideos();
             }, 500);
         }
 
@@ -552,7 +671,6 @@
             audioEnabled = true;
             document.getElementById('startOverlay').style.display = 'none';
             document.getElementById('timer').style.display = 'block';
-            document.getElementById('loading').style.display = 'block';
             refreshAllVideos();
         }
 
@@ -560,107 +678,79 @@
             const playerArray = Object.values(players);
             if (playerArray.length === 0) return;
 
-            // Start all videos
-            Object.entries(players).forEach(([containerId, player]) => {
-                if (player && typeof player.playVideo === 'function') {
-                    const index = parseInt(containerId.split('-')[1]);
-                    console.log('starting video', index);
-                    player.setVolume(100);
-                    player.playVideo();
-                }
-            });
-
             if (audioEnabled) {
                 // Choose one random video from the successfully loaded players
                 const availableIndices = Object.keys(players).map(id => parseInt(id.split('-')[1]));
                 correctVideoIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
                 console.log('Unmuting video', correctVideoIndex);
-                const chosenPlayer = players[`player-${correctVideoIndex}`];
-                if (chosenPlayer) {
-                    chosenPlayer.unMute();
-                    chosenPlayer.setVolume(100);
-                }
-            }
-        }
-
-        async function getFirstNSuccessful(videoIds, n) {
-            const results = [];
-            const remaining = [...videoIds];
-            const promises = [];
-
-            // Create all player promises
-            for (let i = 0; i < videoIds.length; i++) {
-                const promise = createPlayerPromise(videoIds[i], `player-${i}`);
-                promises.push(promise);
             }
 
-            while (results.length < n && remaining.length > 0) {
-                try {
-                    const result = await Promise.race(promises.map((p, i) => 
-                        p.then(() => ({ success: true, index: i }))
-                         .catch(() => ({ success: false, index: i }))
-                    ));
-
-                    if (result.success) {
-                        results.push(result.index);
-                    }
+            // Start all videos
+            Object.entries(players).forEach(([containerId, player]) => {
+                if (player && typeof player.playVideo === 'function') {
+                    const index = parseInt(containerId.split('-')[1]);
+                    console.log('starting video', index);
                     
-                    // Remove the processed promise
-                    promises.splice(result.index, 1);
-                    remaining.splice(result.index, 1);
-                } catch (error) {
-                    console.error('Error in race:', error);
+                    if (audioEnabled && index === correctVideoIndex) {
+                        player.unMute();
+                        player.setVolume(100);
+                    }
+                    player.playVideo();
                 }
-            }
-
-            return results;
+            });
         }
 
         async function refreshAllVideos() {
+            if (isProcessingClick) return;
+            
             try {
-                players = [];
                 document.getElementById('loading').style.display = 'block';
-                document.getElementById('grid').style.display = 'none';
-                document.querySelector('.refresh-button').style.display = 'none';
+                document.getElementById('grid').style.display = 'grid';
+                document.querySelector('button').style.display = 'none';
+                document.getElementById('loading').textContent = 'Loading videos...';
 
-                // Get random video IDs for the current grid size
+                // Reinitialize grid with current size
+                initializeGrid();
+
                 const videoIds = getRandomVideoIds(GRID_SIZE);
+                console.log('Loading new videos:', videoIds);
                 
-                // Create all players simultaneously
+                // Create all players at once
                 const promises = videoIds.map((videoId, index) => 
                     createPlayerPromise(videoId, `player-${index}`)
                 );
-
-                // Wait for all players to be created
-                await Promise.allSettled(promises);
-
-                // Filter out any failed players
-                players = Object.fromEntries(
-                    Object.entries(players).filter(([_, player]) => player && typeof player.playVideo === 'function')
-                );
-
-                if (Object.keys(players).length === 0) {
+                
+                // Wait for all videos to load with a more graceful fallback
+                const results = await Promise.allSettled(promises);
+                const successfulLoads = results.filter(r => r.status === 'fulfilled').length;
+                
+                if (successfulLoads === 0) {
                     throw new Error('No videos could be loaded');
                 }
-
+                
+                // Continue even if some players failed, as long as we have enough for the game
                 document.getElementById('loading').style.display = 'none';
-                document.getElementById('grid').style.display = 'grid';
-                document.querySelector('.refresh-button').style.display = 'block';
-
-                // Show the containers
-                document.querySelectorAll('.video-container').forEach((container) => {
-                    container.classList.add('loaded');
-                });
-
                 playAllVideos();
                 startTimer();
+                document.querySelector('button').style.display = 'block';
 
             } catch (error) {
                 console.error('Error refreshing videos:', error);
-                document.getElementById('loading').textContent = 'Error loading videos. Please try again.';
+                document.getElementById('loading').textContent = 'Error loading videos. Retrying...';
+                // Add a longer delay before retrying
                 setTimeout(() => {
-                    document.getElementById('loading').textContent = 'Loading videos...';
-                    refreshAllVideos();
+                    if (!isProcessingClick) {
+                        // Clean up any partially loaded players
+                        Object.entries(players).forEach(([id, player]) => {
+                            try {
+                                player.destroy();
+                            } catch (e) {
+                                console.error('Error destroying player:', e);
+                            }
+                        });
+                        players = {};
+                        refreshAllVideos();
+                    }
                 }, 2000);
             }
         }
@@ -668,8 +758,7 @@
         // Wait for YouTube API to load
         window.onYouTubeIframeAPIReady = function() {
             initializeGrid();
-            // Hide loading initially
-            document.getElementById('loading').style.display = 'none';
+            // Don't auto-start, wait for user interaction
             document.getElementById('grid').style.display = 'none';
         };
 
@@ -695,20 +784,6 @@
             else if (currentStreak >= 5) streakIcon.textContent = '🔥🔥';
             else streakIcon.textContent = '🔥';
         }
-
-        // Add window resize handler to update grid when orientation changes
-        window.addEventListener('resize', () => {
-            const wasMobile = GRID_SIZE === 6;
-            const isMobile = window.innerWidth <= 768;
-            
-            // Only reinitialize if the device type changed
-            if (wasMobile !== isMobile) {
-                initializeGrid();
-                if (audioEnabled) {
-                    refreshAllVideos();
-                }
-            }
-        });
     </script>
 </body>
 </html> 
