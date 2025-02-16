@@ -2,11 +2,73 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Screen dimensions
-const WIDTH = 1500;
-const HEIGHT = 1000;
-canvas.width = WIDTH;
-canvas.height = HEIGHT;
+// Original game dimensions
+const GAME_WIDTH = 1500;
+const GAME_HEIGHT = 1000;
+let WIDTH = GAME_WIDTH;
+let HEIGHT = GAME_HEIGHT;
+let currentScale = 1;
+let gameStarted = false;
+
+// Set canvas to viewport size and scale
+function resizeCanvas() {
+    currentScale = Math.min(window.innerWidth / GAME_WIDTH, window.innerHeight / GAME_HEIGHT);
+    canvas.style.width = `${GAME_WIDTH * currentScale}px`;
+    canvas.style.height = `${GAME_HEIGHT * currentScale}px`;
+    canvas.width = GAME_WIDTH;
+    canvas.height = GAME_HEIGHT;
+    
+    // Center the canvas
+    canvas.style.position = 'fixed';
+    const leftOffset = (window.innerWidth - GAME_WIDTH * currentScale) / 2;
+    const topOffset = (window.innerHeight - GAME_HEIGHT * currentScale) / 2;
+    canvas.style.left = `${leftOffset}px`;
+    canvas.style.top = `${topOffset}px`;
+
+    // Store offsets for input translation
+    canvas.offsetLeft = leftOffset;
+    canvas.offsetTop = topOffset;
+
+    // Redraw menu if game hasn't started
+    if (!gameStarted) {
+        startScreen();
+    }
+}
+
+// Initial resize
+resizeCanvas();
+
+// Add resize listener
+window.addEventListener('resize', resizeCanvas);
+
+// Prevent scrolling without breaking the game
+document.body.style.margin = '0';
+document.body.style.overflow = 'hidden';
+
+// Translate mouse coordinates to game coordinates
+function translateCoordinates(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    const x = (clientX - rect.left) / currentScale;
+    const y = (clientY - rect.top) / currentScale;
+    return { x, y };
+}
+
+// Key state tracking with coordinate translation
+const keys = {};
+document.addEventListener('keydown', (e) => {
+    keys[e.code] = true;
+    if (e.code === playerControls.shoot) {
+        const mousePos = translateCoordinates(e.clientX, e.clientY);
+        // Update any shooting logic here if needed
+    }
+});
+document.addEventListener('keyup', (e) => keys[e.code] = false);
+
+// Mouse event handling
+canvas.addEventListener('click', (e) => {
+    const pos = translateCoordinates(e.clientX, e.clientY);
+    // Use pos.x and pos.y for game logic
+});
 
 // Colors
 const BLACK = '#000000';
@@ -30,11 +92,6 @@ let gameStats = {
     wins: 0,
     losses: 0
 };
-
-// Key state tracking
-const keys = {};
-document.addEventListener('keydown', (e) => keys[e.code] = true);
-document.addEventListener('keyup', (e) => keys[e.code] = false);
 
 // Player controls
 const playerControls = {
@@ -431,8 +488,11 @@ class PowerUp {
 }
 
 // Game initialization function
-function initGame() {
-    const playerWeapon = startScreen();
+async function initGame() {
+    // Draw the menu first
+    const playerWeapon = await startScreen();
+    
+    // Only create player and start game after weapon selection
     const player = new Fighter(WIDTH/2, HEIGHT/2, WHITE, playerControls, playerWeapon);
     
     const botColors = [RED, GREEN, YELLOW, ORANGE, CYAN, PINK];
@@ -454,33 +514,40 @@ function initGame() {
 }
 
 function startScreen() {
-    ctx.fillStyle = BLACK;
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
-
-    ctx.font = '36px Arial';
-    ctx.fillStyle = WHITE;
-    const title = "Choose Your Weapon";
-    ctx.fillText(title, WIDTH/2 - ctx.measureText(title).width/2, 100);
-
-    const options = ["Default", "Rapid Fire", "Beam", "Missile"];
-    if (gameStats.wins >= 2) {
-        options.push("Health Stealer");
-    }
-    if (gameStats.wins >= 6) {
-        options.push("Strong Lightning");
-    }
-
-    options.forEach((opt, i) => {
-        ctx.fillText(`${i+1}: ${opt}`, WIDTH/2 - 100, 200 + i * 50);
-    });
-
-    // Display wins and losses
-    ctx.fillStyle = GREEN;
-    ctx.fillText(`Wins: ${gameStats.wins}`, WIDTH - 150, 20);
-    ctx.fillStyle = RED;
-    ctx.fillText(`Losses: ${gameStats.losses}`, WIDTH - 150, 60);
-
     return new Promise(resolve => {
+        function drawMenu() {
+            ctx.fillStyle = BLACK;
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+            ctx.font = '36px Arial';
+            ctx.fillStyle = WHITE;
+            const title = "Choose Your Weapon";
+            ctx.fillText(title, WIDTH/2 - ctx.measureText(title).width/2, 100);
+
+            const options = ["Default", "Rapid Fire", "Beam", "Missile"];
+            if (gameStats.wins >= 2) {
+                options.push("Health Stealer");
+            }
+            if (gameStats.wins >= 6) {
+                options.push("Strong Lightning");
+            }
+
+            options.forEach((opt, i) => {
+                ctx.fillText(`${i+1}: ${opt}`, WIDTH/2 - 100, 200 + i * 50);
+            });
+
+            // Display wins and losses
+            ctx.fillStyle = GREEN;
+            ctx.fillText(`Wins: ${gameStats.wins}`, WIDTH - 150, 20);
+            ctx.fillStyle = RED;
+            ctx.fillText(`Losses: ${gameStats.losses}`, WIDTH - 150, 60);
+
+            // Request next frame for smooth rendering
+            if (!gameStarted) {
+                requestAnimationFrame(drawMenu);
+            }
+        }
+
         function handleKeyPress(e) {
             let weapon = null;
             if (e.key === '1') weapon = "default";
@@ -492,9 +559,14 @@ function startScreen() {
 
             if (weapon) {
                 document.removeEventListener('keydown', handleKeyPress);
+                gameStarted = true;
                 resolve(weapon);
             }
         }
+
+        // Start menu animation
+        gameStarted = false;
+        drawMenu();
         document.addEventListener('keydown', handleKeyPress);
     });
 }
@@ -539,7 +611,8 @@ function endScreen(won) {
 
 async function gameLoop() {
     while (true) {
-        player = await initGame();
+        // Initialize game and wait for player selection
+        const player = await initGame();
         let running = true;
 
         function update() {
@@ -776,5 +849,9 @@ async function gameLoop() {
     }
 }
 
-// Start the game
+// Clear the canvas and show menu
+ctx.fillStyle = BLACK;
+ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+// Start the game loop
 gameLoop(); 
