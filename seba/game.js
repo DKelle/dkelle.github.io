@@ -309,7 +309,15 @@ class Fighter {
                 this.bullets.push(new Bullet(this.x, this.y, bulletDx, bulletDy, this.color));
                 this.cooldown = 5;
             } else if (this.weapon === "beam") {
-                this.beamActive = Math.random() < 0.1;  // 10% chance to activate beam
+                const target = this.findNearestTarget();
+                if (target) {
+                    const distToTarget = Math.hypot(target.x - this.x, target.y - this.y);
+                    const angleToTarget = Math.atan2(target.y - this.y, target.x - this.x);
+                    const angleDiff = Math.abs(angleDifference(this.angle, angleToTarget));
+                    
+                    // Activate beam when close and roughly facing target
+                    this.beamActive = distToTarget < 600 && angleDiff < Math.PI/4;
+                }
             }
         }
     }
@@ -354,8 +362,26 @@ class Fighter {
                 const beamDx = Math.cos(fighter.angle);
                 const beamDy = Math.sin(fighter.angle);
                 const distToFighter = Math.hypot(this.x - fighter.x, this.y - fighter.y);
-                if (Math.abs((this.x - fighter.x) * beamDy - (this.y - fighter.y) * beamDx) < this.radius && distToFighter < WIDTH) {
-                    this.health -= 0.2;
+                
+                // Calculate distance from point to line (beam)
+                const distToBeam = Math.abs((this.x - fighter.x) * beamDy - (this.y - fighter.y) * beamDx);
+                
+                // Check if within beam range and width
+                if (distToBeam < this.radius * 2 && // Wider hit detection
+                    distToFighter < 800 && // Maximum beam range
+                    Math.abs(angleDifference(fighter.angle, Math.atan2(this.y - fighter.y, this.x - fighter.x))) < Math.PI/2) { // In front of shooter
+                    
+                    // More damage when closer
+                    const damageMultiplier = 1 - (distToFighter / 800);
+                    this.health -= 1.5 * damageMultiplier; // Increased base damage
+                    
+                    // Visual feedback
+                    ctx.beginPath();
+                    ctx.moveTo(fighter.x, fighter.y);
+                    ctx.lineTo(this.x, this.y);
+                    ctx.strokeStyle = fighter.color;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
                 }
             }
         });
@@ -847,3 +873,11 @@ ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
 // Start the game loop
 gameLoop(); 
+
+// Add helper function for angle calculations
+function angleDifference(angle1, angle2) {
+    let diff = angle2 - angle1;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    return diff;
+} 
