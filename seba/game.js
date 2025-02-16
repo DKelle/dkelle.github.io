@@ -110,7 +110,7 @@ class Fighter {
         this.color = color;
         this.angle = Math.random() * Math.PI * 2;
         this.speed = 3;
-        this.turnSpeed = 0.1;
+        this.turnSpeed = 0.05;
         this.radius = 20;
         this.health = 100;
         this.damageTimer = 0;
@@ -124,6 +124,8 @@ class Fighter {
         this.lastDirectionUpdate = Date.now();
         this.targetAngle = this.angle;
         this.strongLightningSize = 300;
+        this.isMovingForward = false;
+        this.lastMoveUpdate = Date.now();
     }
 
     move() {
@@ -368,6 +370,88 @@ class Fighter {
         ctx.strokeStyle = this.color;
         ctx.lineWidth = 3;
         ctx.stroke();
+    }
+
+    evaluatePosition(x, y) {
+        let safety = 0;
+        let nearestEnemyDist = Infinity;
+        let nearestEnemy = null;
+
+        fighters.forEach(fighter => {
+            if (fighter !== this && fighter.health > 0) {
+                const dist = Math.hypot(x - fighter.x, y - fighter.y);
+                
+                if (dist < nearestEnemyDist) {
+                    nearestEnemyDist = dist;
+                    nearestEnemy = fighter;
+                }
+
+                if (dist < this.dangerThreshold) {
+                    safety -= (this.dangerThreshold - dist) / this.dangerThreshold;
+                    
+                    if (fighter.weapon === "beam") {
+                        safety -= 0.5;
+                    }
+                }
+
+                const idealRange = this.getIdealRange();
+                const rangeDiff = Math.abs(dist - idealRange);
+                safety += 1 - (rangeDiff / idealRange);
+            }
+        });
+
+        const edgeBuffer = 100;
+        if (x < edgeBuffer || x > WIDTH - edgeBuffer || y < edgeBuffer || y > HEIGHT - edgeBuffer) {
+            safety -= 0.5;
+        }
+
+        return { safety, nearestEnemy, nearestEnemyDist };
+    }
+
+    getIdealRange() {
+        switch(this.weapon) {
+            case "beam": return 400;
+            case "missile": return 500;
+            case "rapid": return 300;
+            case "health stealer": return 300;
+            case "lightning": return 250;
+            case "strong lightning": return 300;
+            default: return 350;
+        }
+    }
+
+    updateBotMovement(target) {
+        if (!target) return;
+
+        const now = Date.now();
+        const deltaTime = (now - this.lastMoveUpdate) / 1000;
+        this.lastMoveUpdate = now;
+
+        // Calculate angle to target
+        const targetAngle = Math.atan2(target.y - this.y, target.x - this.x);
+        const angleDiff = (targetAngle - this.angle + Math.PI) % (Math.PI * 2) - Math.PI;
+        
+        // Smooth turning
+        this.angle += Math.sign(angleDiff) * Math.min(Math.abs(angleDiff), this.turnSpeed);
+
+        // Calculate distance to target
+        const distToTarget = Math.hypot(target.x - this.x, target.y - this.y);
+        const idealRange = this.getIdealRange();
+
+        // Move forward or backward based on distance
+        if (distToTarget > idealRange + 50) {
+            // Too far, move forward
+            this.x += Math.cos(this.angle) * this.speed;
+            this.y += Math.sin(this.angle) * this.speed;
+        } else if (distToTarget < idealRange - 50) {
+            // Too close, move backward
+            this.x -= Math.cos(this.angle) * this.speed;
+            this.y -= Math.sin(this.angle) * this.speed;
+        }
+
+        // Wrap around screen edges smoothly
+        this.x = (this.x + WIDTH) % WIDTH;
+        this.y = (this.y + HEIGHT) % HEIGHT;
     }
 }
 
@@ -632,7 +716,6 @@ async function gameLoop() {
 
             // Update fighters
             fighters.forEach(fighter => {
-                // Handle cooldown
                 if (fighter.cooldown > 0) {
                     fighter.cooldown--;
                 }
@@ -641,109 +724,18 @@ async function gameLoop() {
                     fighter.move();
                     fighter.shoot();
                 } else {
-                    // Enhanced Bot AI
+                    // Bot behavior
                     const target = fighter.findNearestTarget();
+                    fighter.updateBotMovement(target);
+                    
+                    // Shoot when roughly facing target with some randomness
                     if (target) {
-                        const distToTarget = Math.hypot(target.x - fighter.x, target.y - fighter.y);
-                        const targetAngle = Math.atan2(target.y - fighter.y, target.x - fighter.x);
-                        let angleDiff = (targetAngle - fighter.angle + Math.PI) % (Math.PI * 2) - Math.PI;
-
-                        // Different behaviors based on weapon type
-                        if (fighter.weapon === "beam") {
-                            // Beam users try to keep medium distance and sweep their beams
-                            const idealDistance = 400;
-                            if (Math.abs(distToTarget - idealDistance) > 50) {
-                                const moveDir = distToTarget > idealDistance ? 1 : -1;
-                                fighter.x += Math.cos(fighter.angle) * fighter.speed * moveDir;
-                                fighter.y += Math.sin(fighter.angle) * fighter.speed * moveDir;
-                            }
-                            // Sweep beam more aggressively
-                            fighter.angle += 0.02 * (Math.sin(Date.now() / 1000) > 0 ? 1 : -1);
-                            fighter.beamActive = Math.abs(angleDiff) < 0.5; // Wider angle for beam activation
-
-                        } else if (fighter.weapon === "missile") {
-                            // Missile users maintain long range and try to predict target movement
-                            const idealDistance = 500;
-                            // Predict target position
-                            const predictedX = target.x + Math.cos(target.angle) * target.speed * 20;
-                            const predictedY = target.y + Math.sin(target.angle) * target.speed * 20;
-                            const predictedAngle = Math.atan2(predictedY - fighter.y, predictedX - fighter.x);
-                            angleDiff = (predictedAngle - fighter.angle + Math.PI) % (Math.PI * 2) - Math.PI;
-                            
-                            if (distToTarget < idealDistance - 100) {
-                                // Back away while keeping aim
-                                fighter.x -= Math.cos(fighter.angle) * fighter.speed;
-                                fighter.y -= Math.sin(fighter.angle) * fighter.speed;
-                            }
-
-                        } else if (fighter.weapon === "rapid") {
-                            // Rapid fire users are aggressive and try to circle the target
-                            const circleRadius = 200;
-                            const circleSpeed = 0.05;
-                            const circleAngle = Date.now() * circleSpeed;
-                            
-                            const idealX = target.x + Math.cos(circleAngle) * circleRadius;
-                            const idealY = target.y + Math.sin(circleAngle) * circleRadius;
-                            
-                            fighter.x += (idealX - fighter.x) * 0.05;
-                            fighter.y += (idealY - fighter.y) * 0.05;
-
-                        } else {
-                            // Default weapon users use dynamic distance based on target's health
-                            const targetHealthRatio = target.health / 100;
-                            const idealDistance = targetHealthRatio > 0.7 ? 200 : 350; // More aggressive when target is weak
-                            
-                            if (Math.abs(distToTarget - idealDistance) > 50) {
-                                const moveDir = distToTarget > idealDistance ? 1 : -1;
-                                fighter.x += Math.cos(fighter.angle) * fighter.speed * moveDir;
-                                fighter.y += Math.sin(fighter.angle) * fighter.speed * moveDir;
-                            }
-
-                            // Add some randomness to movement
-                            if (Math.random() < 0.05) {
-                                fighter.x += (Math.random() - 0.5) * 20;
-                                fighter.y += (Math.random() - 0.5) * 20;
-                            }
-                        }
-
-                        // Common behavior for all weapons
-                        // Smoother turning
-                        fighter.angle += Math.min(Math.abs(angleDiff), fighter.turnSpeed) * (angleDiff > 0 ? 1 : -1);
-                        
-                        // Shoot when roughly facing target with some randomness
-                        if (Math.abs(angleDiff) < 0.2 || (Math.abs(angleDiff) < 0.4 && Math.random() < 0.3)) {
+                        const angleToTarget = Math.atan2(target.y - fighter.y, target.x - fighter.x);
+                        let angleDiff = Math.abs((angleToTarget - fighter.angle + Math.PI) % (Math.PI * 2) - Math.PI);
+                        if (angleDiff < 0.3 || (angleDiff < 0.5 && Math.random() < 0.3)) {
                             fighter.shoot();
                         }
-
-                        // Check for nearby power-ups and go for them if advantageous
-                        let nearestPowerUp = null;
-                        let nearestPowerUpDist = Infinity;
-                        powerUps.forEach(powerUp => {
-                            const dist = Math.hypot(powerUp.x - fighter.x, powerUp.y - fighter.y);
-                            if (dist < nearestPowerUpDist && (
-                                fighter.health < 40 || // Always go for power-ups when health is low
-                                (dist < 200 && Math.random() < 0.7) // Sometimes go for nearby power-ups
-                            )) {
-                                nearestPowerUpDist = dist;
-                                nearestPowerUp = powerUp;
-                            }
-                        });
-
-                        if (nearestPowerUp) {
-                            fighter.x += (nearestPowerUp.x - fighter.x) * 0.05;
-                            fighter.y += (nearestPowerUp.y - fighter.y) * 0.05;
-                        }
-
-                    } else {
-                        // No target - patrol behavior
-                        fighter.angle += 0.02 * Math.sin(Date.now() / 1000);
-                        fighter.x += Math.cos(fighter.angle) * fighter.speed;
-                        fighter.y += Math.sin(fighter.angle) * fighter.speed;
                     }
-
-                    // Ensure bots stay in bounds with smooth wrapping
-                    fighter.x = (fighter.x + WIDTH) % WIDTH;
-                    fighter.y = (fighter.y + HEIGHT) % HEIGHT;
                 }
 
                 fighter.updateBullets();
