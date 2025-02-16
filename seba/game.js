@@ -1,0 +1,780 @@
+// Canvas setup
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+// Screen dimensions
+const WIDTH = 1500;
+const HEIGHT = 1000;
+canvas.width = WIDTH;
+canvas.height = HEIGHT;
+
+// Colors
+const BLACK = '#000000';
+const WHITE = '#FFFFFF';
+const RED = '#FF0000';
+const BLUE = '#0000FF';
+const GREEN = '#00FF00';
+const YELLOW = '#FFFF00';
+const PURPLE = '#B734EB';
+const ORANGE = '#EB8F35';
+const CYAN = '#34E5EB';
+const BROWN = '#613D2D';
+const PINK = '#ED45CE';
+
+// Game constants
+const FPS = 60;
+let fighters = [];
+let powerUps = [];
+let powerUpTimer = 0;
+let gameStats = {
+    wins: 0,
+    losses: 0
+};
+
+// Key state tracking
+const keys = {};
+document.addEventListener('keydown', (e) => keys[e.code] = true);
+document.addEventListener('keyup', (e) => keys[e.code] = false);
+
+// Player controls
+const playerControls = {
+    left: 'ArrowLeft',
+    right: 'ArrowRight',
+    up: 'ArrowUp',
+    down: 'ArrowDown',
+    shoot: 'Space'
+};
+
+class Fighter {
+    constructor(x, y, color, controls = null, weapon = "default") {
+        this.particles = [];
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.angle = Math.random() * Math.PI * 2;
+        this.speed = 3;
+        this.turnSpeed = 0.1;
+        this.radius = 20;
+        this.health = 100;
+        this.damageTimer = 0;
+        this.lastDamageTimerUpdate = 0;
+        this.damageAmount = 20;
+        this.bullets = [];
+        this.cooldown = 0;
+        this.controls = controls;
+        this.weapon = weapon;
+        this.beamActive = false;
+        this.lastDirectionUpdate = Date.now();
+        this.targetAngle = this.angle;
+        this.strongLightningSize = 300;
+    }
+
+    move() {
+        if (this.controls) {
+            if (keys[this.controls.left]) this.angle -= this.turnSpeed;
+            if (keys[this.controls.right]) this.angle += this.turnSpeed;
+            if (keys[this.controls.up]) {
+                this.x += Math.cos(this.angle) * this.speed;
+                this.y += Math.sin(this.angle) * this.speed;
+            }
+            if (keys[this.controls.down]) {
+                this.x -= Math.cos(this.angle) * this.speed;
+                this.y -= Math.sin(this.angle) * this.speed;
+            }
+        }
+
+        // Wrap around screen edges
+        this.x = (this.x + WIDTH) % WIDTH;
+        this.y = (this.y + HEIGHT) % HEIGHT;
+    }
+
+    draw() {
+        // Draw fighter triangle
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.beginPath();
+        ctx.moveTo(this.radius, 0);
+        ctx.lineTo(-this.radius/2, -this.radius/2);
+        ctx.lineTo(-this.radius/2, this.radius/2);
+        ctx.closePath();
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.restore();
+
+        // Draw bullets
+        this.bullets.forEach(bullet => bullet.draw());
+
+        // Draw beam if active
+        if (this.weapon === "beam" && this.beamActive) {
+            this.drawBeam();
+        }
+
+        this.drawHealthBar();
+    }
+
+    drawHealthBar() {
+        const barWidth = 80;
+        const barHeight = 8;
+        const healthPercentage = this.health / 100;
+
+        // Draw cooldown bar
+        const maxCooldown = this.weapon === "missile" ? 70 : 
+                           this.weapon === "health stealer" ? 340 : 
+                           this.weapon === "default" ? 20 : 
+                           this.weapon === "rapid" ? 5 : 
+                           this.weapon === "lightning" ? 15 : 20;
+        
+        const cooldownPercentage = this.cooldown / maxCooldown;
+
+        // Cooldown bar
+        ctx.fillStyle = WHITE;
+        ctx.fillRect(this.x - barWidth/2, this.y - this.radius - 22, barWidth, barHeight);
+        if (cooldownPercentage > 0) {
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(this.x - barWidth/2, this.y - this.radius - 22, barWidth * cooldownPercentage, barHeight);
+        }
+
+        // Health bar
+        const healthColor = healthPercentage > 0.5 ? GREEN : 
+                           healthPercentage > 0.2 ? YELLOW : RED;
+        ctx.fillStyle = WHITE;
+        ctx.fillRect(this.x - barWidth/2, this.y - this.radius - 10, barWidth, barHeight);
+        ctx.fillStyle = healthColor;
+        ctx.fillRect(this.x - barWidth/2, this.y - this.radius - 10, barWidth * healthPercentage, barHeight);
+    }
+
+    shoot() {
+        if (this.controls) {  // Player shooting
+            if (this.weapon === "missile" && keys[this.controls.shoot] && this.cooldown === 0) {
+                const target = this.findNearestTarget();
+                if (target) {
+                    const bulletDx = Math.cos(this.angle) * 7;
+                    const bulletDy = Math.sin(this.angle) * 7;
+                    this.bullets.push(new Missile(this.x, this.y, bulletDx, bulletDy, RED, target, this));
+                    this.cooldown = 70;
+                }
+            } else if (this.weapon === "health stealer" && keys[this.controls.shoot] && this.cooldown === 0) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 300, 0, Math.PI * 2);
+                ctx.strokeStyle = GREEN;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                let affectedCount = 0;
+                fighters.forEach(fighter => {
+                    if (fighter !== this && Math.hypot(fighter.x - this.x, fighter.y - this.y) < 300) {
+                        fighter.health -= 9;
+                        affectedCount++;
+                        ctx.beginPath();
+                        ctx.moveTo(this.x, this.y);
+                        ctx.lineTo(fighter.x, fighter.y);
+                        ctx.strokeStyle = GREEN;
+                        ctx.stroke();
+                    }
+                });
+
+                if (affectedCount > 0) {
+                    const healAmount = 9 * affectedCount;
+                    this.health = Math.min(100, this.health + healAmount);
+                }
+
+                this.cooldown = 340;
+            } else if (this.weapon === "default" && keys[this.controls.shoot] && this.cooldown === 0) {
+                const bulletDx = Math.cos(this.angle) * 5;
+                const bulletDy = Math.sin(this.angle) * 5;
+                this.bullets.push(new Bullet(this.x, this.y, bulletDx, bulletDy, this.color));
+                this.cooldown = 20;
+            } else if (this.weapon === "rapid" && keys[this.controls.shoot] && this.cooldown === 0) {
+                const bulletDx = Math.cos(this.angle) * 5;
+                const bulletDy = Math.sin(this.angle) * 5;
+                this.bullets.push(new Bullet(this.x, this.y, bulletDx, bulletDy, this.color));
+                this.cooldown = 5;
+            } else if (this.weapon === "beam") {
+                this.beamActive = keys[this.controls.shoot];
+            } else if (this.weapon === "lightning" && keys[this.controls.shoot] && this.cooldown === 0) {
+                const lightningColor = Math.random() < 0.5 ? CYAN : YELLOW;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 200, 0, Math.PI * 2);
+                ctx.strokeStyle = lightningColor;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                fighters.forEach(fighter => {
+                    if (fighter !== this && Math.hypot(fighter.x - this.x, fighter.y - this.y) < 200) {
+                        fighter.health -= 15;
+                        ctx.beginPath();
+                        ctx.moveTo(this.x, this.y);
+                        ctx.lineTo(fighter.x, fighter.y);
+                        ctx.strokeStyle = lightningColor;
+                        ctx.stroke();
+                    }
+                });
+                this.cooldown = 15;
+            } else if (this.weapon === "strong lightning" && keys[this.controls.shoot] && this.cooldown === 0) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.strongLightningSize, 0, Math.PI * 2);
+                ctx.strokeStyle = PURPLE;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                fighters.forEach(fighter => {
+                    if (fighter !== this && Math.hypot(fighter.x - this.x, fighter.y - this.y) < this.strongLightningSize) {
+                        fighter.health -= 25;
+                        ctx.beginPath();
+                        ctx.moveTo(this.x, this.y);
+                        ctx.lineTo(fighter.x, fighter.y);
+                        ctx.strokeStyle = PURPLE;
+                        ctx.stroke();
+                    }
+                });
+                this.cooldown = 20;
+            }
+        } else {  // Bot shooting
+            if (this.weapon === "missile" && this.cooldown === 0) {
+                const target = this.findNearestTarget();
+                if (target) {
+                    const bulletDx = Math.cos(this.angle) * 7;
+                    const bulletDy = Math.sin(this.angle) * 7;
+                    this.bullets.push(new Missile(this.x, this.y, bulletDx, bulletDy, RED, target, this));
+                    this.cooldown = 70;
+                }
+            } else if (this.weapon === "default" && this.cooldown === 0) {
+                const bulletDx = Math.cos(this.angle) * 5;
+                const bulletDy = Math.sin(this.angle) * 5;
+                this.bullets.push(new Bullet(this.x, this.y, bulletDx, bulletDy, this.color));
+                this.cooldown = 20;
+            } else if (this.weapon === "rapid" && this.cooldown === 0) {
+                const bulletDx = Math.cos(this.angle) * 5;
+                const bulletDy = Math.sin(this.angle) * 5;
+                this.bullets.push(new Bullet(this.x, this.y, bulletDx, bulletDy, this.color));
+                this.cooldown = 5;
+            } else if (this.weapon === "beam") {
+                this.beamActive = Math.random() < 0.1;  // 10% chance to activate beam
+            }
+        }
+    }
+
+    findNearestTarget() {
+        let nearestFighter = null;
+        let nearestDistance = Infinity;
+        fighters.forEach(fighter => {
+            if (fighter !== this && fighter.health > 0) {
+                const distance = Math.hypot(this.x - fighter.x, this.y - fighter.y);
+                if (distance < nearestDistance) {
+                    nearestDistance = distance;
+                    nearestFighter = fighter;
+                }
+            }
+        });
+        return nearestFighter;
+    }
+
+    updateBullets() {
+        this.bullets = this.bullets.filter(bullet => {
+            bullet.move();
+            return bullet.x >= 0 && bullet.x <= WIDTH && bullet.y >= 0 && bullet.y <= HEIGHT;
+        });
+    }
+
+    checkCollision() {
+        fighters.forEach(fighter => {
+            if (fighter === this) return;
+            
+            fighter.bullets.forEach(bullet => {
+                if (Math.hypot(this.x - bullet.x, this.y - bullet.y) < this.radius) {
+                    this.health -= 10;
+                    const index = fighter.bullets.indexOf(bullet);
+                    if (index > -1) {
+                        fighter.bullets.splice(index, 1);
+                    }
+                }
+            });
+
+            if (fighter.weapon === "beam" && fighter.beamActive) {
+                const beamDx = Math.cos(fighter.angle);
+                const beamDy = Math.sin(fighter.angle);
+                const distToFighter = Math.hypot(this.x - fighter.x, this.y - fighter.y);
+                if (Math.abs((this.x - fighter.x) * beamDy - (this.y - fighter.y) * beamDx) < this.radius && distToFighter < WIDTH) {
+                    this.health -= 0.2;
+                }
+            }
+        });
+    }
+
+    drawBeam() {
+        const endX = this.x + Math.cos(this.angle) * WIDTH;
+        const endY = this.y + Math.sin(this.angle) * HEIGHT;
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(endX, endY);
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
+}
+
+class Bullet {
+    constructor(x, y, dx, dy, color) {
+        this.x = x;
+        this.y = y;
+        this.dx = dx;
+        this.dy = dy;
+        this.color = color;
+        this.radius = 5;
+    }
+
+    move() {
+        this.x += this.dx;
+        this.y += this.dy;
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+    }
+}
+
+class Missile extends Bullet {
+    constructor(x, y, dx, dy, color, target, shooter) {
+        super(x, y, dx, dy, color);
+        this.target = target;
+        this.shooter = shooter;
+        this.turnSpeed = 0.1;
+        this.speed = 7;
+    }
+
+    move() {
+        if (this.target && this.target.health > 0) {
+            const targetAngle = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+            const currentAngle = Math.atan2(this.dy, this.dx);
+            let angleDiff = (targetAngle - currentAngle + Math.PI) % (Math.PI * 2) - Math.PI;
+            const turn = Math.min(Math.abs(angleDiff), this.turnSpeed) * (angleDiff > 0 ? 1 : -1);
+
+            const angle = Math.atan2(this.dy, this.dx) + turn;
+            this.dx = Math.cos(angle) * this.speed;
+            this.dy = Math.sin(angle) * this.speed;
+        }
+
+        this.x += this.dx;
+        this.y += this.dy;
+
+        // Check for impact
+        if (this.target && Math.hypot(this.x - this.target.x, this.y - this.target.y) < this.target.radius) {
+            // Draw explosion
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 100, 0, Math.PI * 2);
+            ctx.strokeStyle = RED;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Damage nearby fighters
+            fighters.forEach(fighter => {
+                if (fighter !== this.shooter && Math.hypot(fighter.x - this.x, fighter.y - this.y) < 50) {
+                    fighter.health -= 2;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y);
+                    ctx.lineTo(fighter.x, fighter.y);
+                    ctx.strokeStyle = RED;
+                    ctx.stroke();
+                }
+            });
+            return true;
+        }
+        return false;
+    }
+}
+
+class Particle {
+    constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.life = 20;
+        this.radius = Math.random() * 3 + 2;
+        this.dx = Math.random() * 2 - 1;
+        this.dy = Math.random() * 2 - 1;
+    }
+
+    update() {
+        this.x += this.dx;
+        this.y += this.dy;
+        this.life--;
+        return this.life <= 0;
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+    }
+}
+
+class PowerUp {
+    constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.radius = 15;
+        this.type = type;
+        this.color = type === "lightning" ? YELLOW : GREEN;
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+    }
+}
+
+// Game initialization function
+function initGame() {
+    const playerWeapon = startScreen();
+    const player = new Fighter(WIDTH/2, HEIGHT/2, WHITE, playerControls, playerWeapon);
+    
+    const botColors = [RED, GREEN, YELLOW, ORANGE, CYAN, PINK];
+    const botWeapons = ["default", "rapid", "beam", "missile"];
+    const bots = botColors.map(color => {
+        return new Fighter(
+            Math.random() * WIDTH,
+            Math.random() * HEIGHT,
+            color,
+            null,
+            botWeapons[Math.floor(Math.random() * botWeapons.length)]
+        );
+    });
+
+    fighters = [player, ...bots];
+    powerUps = [];
+    powerUpTimer = 0;
+    return player;
+}
+
+function startScreen() {
+    ctx.fillStyle = BLACK;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    ctx.font = '36px Arial';
+    ctx.fillStyle = WHITE;
+    const title = "Choose Your Weapon";
+    ctx.fillText(title, WIDTH/2 - ctx.measureText(title).width/2, 100);
+
+    const options = ["Default", "Rapid Fire", "Beam", "Missile"];
+    if (gameStats.wins >= 2) {
+        options.push("Health Stealer");
+    }
+    if (gameStats.wins >= 6) {
+        options.push("Strong Lightning");
+    }
+
+    options.forEach((opt, i) => {
+        ctx.fillText(`${i+1}: ${opt}`, WIDTH/2 - 100, 200 + i * 50);
+    });
+
+    // Display wins and losses
+    ctx.fillStyle = GREEN;
+    ctx.fillText(`Wins: ${gameStats.wins}`, WIDTH - 150, 20);
+    ctx.fillStyle = RED;
+    ctx.fillText(`Losses: ${gameStats.losses}`, WIDTH - 150, 60);
+
+    return new Promise(resolve => {
+        function handleKeyPress(e) {
+            let weapon = null;
+            if (e.key === '1') weapon = "default";
+            else if (e.key === '2') weapon = "rapid";
+            else if (e.key === '3') weapon = "beam";
+            else if (e.key === '4') weapon = "missile";
+            else if (e.key === '5' && gameStats.wins >= 2) weapon = "health stealer";
+            else if (e.key === '6' && gameStats.wins >= 6) weapon = "strong lightning";
+
+            if (weapon) {
+                document.removeEventListener('keydown', handleKeyPress);
+                resolve(weapon);
+            }
+        }
+        document.addEventListener('keydown', handleKeyPress);
+    });
+}
+
+function endScreen(won) {
+    if (won) {
+        gameStats.wins++;
+    } else {
+        gameStats.losses++;
+    }
+
+    return new Promise(resolve => {
+        function draw() {
+            ctx.fillStyle = BLACK;
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+            ctx.font = '74px Arial';
+            ctx.fillStyle = won ? GREEN : RED;
+            const mainText = won ? "YOU WIN!" : "GAME OVER";
+            ctx.fillText(mainText, WIDTH/2 - ctx.measureText(mainText).width/2, HEIGHT/3);
+
+            ctx.font = '36px Arial';
+            ctx.fillStyle = WHITE;
+            const restartText = "Press p to restart or ESC to quit";
+            ctx.fillText(restartText, WIDTH/2 - ctx.measureText(restartText).width/2, HEIGHT/2 + 50);
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'p') {
+                document.removeEventListener('keydown', handleKeyPress);
+                resolve(true);
+            } else if (e.key === 'Escape') {
+                document.removeEventListener('keydown', handleKeyPress);
+                resolve(false);
+            }
+        }
+
+        document.addEventListener('keydown', handleKeyPress);
+        draw();
+    });
+}
+
+async function gameLoop() {
+    while (true) {
+        player = await initGame();
+        let running = true;
+
+        function update() {
+            if (!running) return;
+
+            // Update power-ups
+            powerUpTimer++;
+            if (powerUpTimer > 300) {
+                const powerType = Math.random() < 0.5 ? "lightning" : "speed";
+                powerUps.push(new PowerUp(
+                    Math.random() * WIDTH,
+                    Math.random() * HEIGHT,
+                    powerType
+                ));
+                powerUpTimer = 0;
+            }
+
+            // Update fighters
+            fighters.forEach(fighter => {
+                // Handle cooldown
+                if (fighter.cooldown > 0) {
+                    fighter.cooldown--;
+                }
+
+                if (fighter.controls) {
+                    fighter.move();
+                    fighter.shoot();
+                } else {
+                    // Enhanced Bot AI
+                    const target = fighter.findNearestTarget();
+                    if (target) {
+                        const distToTarget = Math.hypot(target.x - fighter.x, target.y - fighter.y);
+                        const targetAngle = Math.atan2(target.y - fighter.y, target.x - fighter.x);
+                        let angleDiff = (targetAngle - fighter.angle + Math.PI) % (Math.PI * 2) - Math.PI;
+
+                        // Different behaviors based on weapon type
+                        if (fighter.weapon === "beam") {
+                            // Beam users try to keep medium distance and sweep their beams
+                            const idealDistance = 400;
+                            if (Math.abs(distToTarget - idealDistance) > 50) {
+                                const moveDir = distToTarget > idealDistance ? 1 : -1;
+                                fighter.x += Math.cos(fighter.angle) * fighter.speed * moveDir;
+                                fighter.y += Math.sin(fighter.angle) * fighter.speed * moveDir;
+                            }
+                            // Sweep beam more aggressively
+                            fighter.angle += 0.02 * (Math.sin(Date.now() / 1000) > 0 ? 1 : -1);
+                            fighter.beamActive = Math.abs(angleDiff) < 0.5; // Wider angle for beam activation
+
+                        } else if (fighter.weapon === "missile") {
+                            // Missile users maintain long range and try to predict target movement
+                            const idealDistance = 500;
+                            // Predict target position
+                            const predictedX = target.x + Math.cos(target.angle) * target.speed * 20;
+                            const predictedY = target.y + Math.sin(target.angle) * target.speed * 20;
+                            const predictedAngle = Math.atan2(predictedY - fighter.y, predictedX - fighter.x);
+                            angleDiff = (predictedAngle - fighter.angle + Math.PI) % (Math.PI * 2) - Math.PI;
+                            
+                            if (distToTarget < idealDistance - 100) {
+                                // Back away while keeping aim
+                                fighter.x -= Math.cos(fighter.angle) * fighter.speed;
+                                fighter.y -= Math.sin(fighter.angle) * fighter.speed;
+                            }
+
+                        } else if (fighter.weapon === "rapid") {
+                            // Rapid fire users are aggressive and try to circle the target
+                            const circleRadius = 200;
+                            const circleSpeed = 0.05;
+                            const circleAngle = Date.now() * circleSpeed;
+                            
+                            const idealX = target.x + Math.cos(circleAngle) * circleRadius;
+                            const idealY = target.y + Math.sin(circleAngle) * circleRadius;
+                            
+                            fighter.x += (idealX - fighter.x) * 0.05;
+                            fighter.y += (idealY - fighter.y) * 0.05;
+
+                        } else {
+                            // Default weapon users use dynamic distance based on target's health
+                            const targetHealthRatio = target.health / 100;
+                            const idealDistance = targetHealthRatio > 0.7 ? 200 : 350; // More aggressive when target is weak
+                            
+                            if (Math.abs(distToTarget - idealDistance) > 50) {
+                                const moveDir = distToTarget > idealDistance ? 1 : -1;
+                                fighter.x += Math.cos(fighter.angle) * fighter.speed * moveDir;
+                                fighter.y += Math.sin(fighter.angle) * fighter.speed * moveDir;
+                            }
+
+                            // Add some randomness to movement
+                            if (Math.random() < 0.05) {
+                                fighter.x += (Math.random() - 0.5) * 20;
+                                fighter.y += (Math.random() - 0.5) * 20;
+                            }
+                        }
+
+                        // Common behavior for all weapons
+                        // Smoother turning
+                        fighter.angle += Math.min(Math.abs(angleDiff), fighter.turnSpeed) * (angleDiff > 0 ? 1 : -1);
+                        
+                        // Shoot when roughly facing target with some randomness
+                        if (Math.abs(angleDiff) < 0.2 || (Math.abs(angleDiff) < 0.4 && Math.random() < 0.3)) {
+                            fighter.shoot();
+                        }
+
+                        // Check for nearby power-ups and go for them if advantageous
+                        let nearestPowerUp = null;
+                        let nearestPowerUpDist = Infinity;
+                        powerUps.forEach(powerUp => {
+                            const dist = Math.hypot(powerUp.x - fighter.x, powerUp.y - fighter.y);
+                            if (dist < nearestPowerUpDist && (
+                                fighter.health < 40 || // Always go for power-ups when health is low
+                                (dist < 200 && Math.random() < 0.7) // Sometimes go for nearby power-ups
+                            )) {
+                                nearestPowerUpDist = dist;
+                                nearestPowerUp = powerUp;
+                            }
+                        });
+
+                        if (nearestPowerUp) {
+                            fighter.x += (nearestPowerUp.x - fighter.x) * 0.05;
+                            fighter.y += (nearestPowerUp.y - fighter.y) * 0.05;
+                        }
+
+                    } else {
+                        // No target - patrol behavior
+                        fighter.angle += 0.02 * Math.sin(Date.now() / 1000);
+                        fighter.x += Math.cos(fighter.angle) * fighter.speed;
+                        fighter.y += Math.sin(fighter.angle) * fighter.speed;
+                    }
+
+                    // Ensure bots stay in bounds with smooth wrapping
+                    fighter.x = (fighter.x + WIDTH) % WIDTH;
+                    fighter.y = (fighter.y + HEIGHT) % HEIGHT;
+                }
+
+                fighter.updateBullets();
+                fighter.checkCollision();
+
+                // Check for power-up collection
+                powerUps.forEach((powerUp, index) => {
+                    if (Math.hypot(fighter.x - powerUp.x, fighter.y - powerUp.y) < fighter.radius + powerUp.radius) {
+                        if (powerUp.type === "lightning") {
+                            if (fighter.weapon === "strong lightning") {
+                                fighter.strongLightningSize += 50;
+                            } else {
+                                fighter.weapon = "lightning";
+                            }
+                        } else if (powerUp.type === "speed") {
+                            fighter.speed = 6;
+                            setTimeout(() => { fighter.speed = 3; }, 5000);
+                        }
+                        powerUps.splice(index, 1);
+                    }
+                });
+
+                // Check health
+                if (fighter.health <= 0) {
+                    const index = fighters.indexOf(fighter);
+                    if (index > -1) {
+                        fighters.splice(index, 1);
+                        // Draw explosion
+                        ctx.beginPath();
+                        ctx.arc(fighter.x, fighter.y, 150, 0, Math.PI * 2);
+                        ctx.strokeStyle = ORANGE;
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                        // Damage nearby fighters
+                        fighters.forEach(f => {
+                            if (Math.hypot(f.x - fighter.x, f.y - fighter.y) < 50) {
+                                f.health -= 8;
+                            }
+                        });
+                    }
+
+                    if (fighter === player) {
+                        running = false;
+                        endScreen(false).then(restart => {
+                            if (!restart) {
+                                window.close();
+                            }
+                        });
+                    } else if (fighters.length === 1 && fighters[0] === player) {
+                        running = false;
+                        endScreen(true).then(restart => {
+                            if (!restart) {
+                                window.close();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        function draw() {
+            if (!running) return;
+
+            ctx.fillStyle = BLACK;
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+            // Draw power-ups
+            powerUps.forEach(powerUp => powerUp.draw());
+
+            // Draw fighters
+            fighters.forEach(fighter => fighter.draw());
+
+            // Draw stats
+            ctx.font = '24px Arial';
+            ctx.fillStyle = GREEN;
+            ctx.fillText(`Wins: ${gameStats.wins}`, WIDTH - 150, 30);
+            ctx.fillStyle = RED;
+            ctx.fillText(`Losses: ${gameStats.losses}`, WIDTH - 150, 60);
+        }
+
+        let lastTime = performance.now();
+        function animate(currentTime) {
+            if (!running) return;
+
+            const deltaTime = currentTime - lastTime;
+            if (deltaTime >= 1000/FPS) {
+                update();
+                draw();
+                lastTime = currentTime;
+            }
+            requestAnimationFrame(animate);
+        }
+
+        requestAnimationFrame(animate);
+        await new Promise(resolve => {
+            const checkGameEnd = setInterval(() => {
+                if (!running) {
+                    clearInterval(checkGameEnd);
+                    resolve();
+                }
+            }, 100);
+        });
+    }
+}
+
+// Start the game
+gameLoop(); 
