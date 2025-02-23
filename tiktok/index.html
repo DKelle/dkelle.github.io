@@ -26,10 +26,16 @@
                 background: var(--header-background) !important;
                 padding: 0 15px;
                 height: var(--header-height);
-                min-height: 10vh;
+                min-height: var(--header-height);
+                max-height: var(--header-height);
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
             }
 
             .streak-container {
@@ -84,8 +90,10 @@
             .grid-container {
                 grid-template-columns: repeat(2, 1fr) !important;
                 grid-template-rows: repeat(3, 1fr) !important;
-                height: calc(90vh - var(--header-height));
+                height: calc(100vh - var(--header-height));
                 margin-top: var(--header-height);
+                width: 100%;
+                overflow: hidden;
             }
 
             /* Hide extra video containers on mobile */
@@ -121,11 +129,12 @@
             flex-direction: column;
             align-items: center;
             background: #000;
+            position: fixed; /* Prevent body from scrolling */
         }
 
         .grid-container {
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: calc(100vh - var(--header-height));
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             grid-template-rows: repeat(2, 1fr);
@@ -133,6 +142,7 @@
             padding: 4px;
             box-sizing: border-box;
             margin-top: var(--header-height);
+            overflow: hidden; /* Prevent grid from scrolling */
         }
 
         .video-container {
@@ -141,10 +151,20 @@
             opacity: 0;
             transition: opacity 0.3s;
             position: relative;
+            overflow: hidden; /* Keep video contained */
         }
 
         .video-container.loaded {
             opacity: 1;
+        }
+
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Maintain aspect ratio while filling container */
+            position: absolute;
+            top: 0;
+            left: 0;
         }
 
         .video-overlay {
@@ -364,33 +384,8 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
     </style>
-</head>
-<body>
-    <div id="loading">Loading videos...</div>
-    <div class="header-bar">
-        <div class="streak-container">
-            <div class="streak-box current-streak">
-                <span class="streak-icon">🔥</span>
-                <span class="streak-count">0</span>
-            </div>
-            <div class="streak-box best-streak">
-                <span class="streak-icon">👑</span>
-                <span class="streak-count">0</span>
-            </div>
-            <div id="timer">0.0s</div>
-        </div>
-    </div>
-    <div class="grid-container" id="grid" style="display: none;"></div>
-    <button onclick="refreshAllVideos()" style="display: none;">Refresh All</button>
-
-    <div class="start-game-overlay" id="startOverlay">
-        <button class="start-button" onclick="startGame()">Start Game</button>
-    </div>
-
-    <!-- Add YouTube IFrame API -->
-    <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-        const API_KEY = 'AIzaSyAp6l8nYAg2SekmaD5L2I7e1M1dR_PkSvI';
+        // Remove YouTube API as we don't need it anymore
         const DESKTOP_GRID_SIZE = 10;
         const MOBILE_GRID_SIZE = 6;
         
@@ -401,80 +396,24 @@
         }
 
         let GRID_SIZE = isMobileDevice() ? MOBILE_GRID_SIZE : DESKTOP_GRID_SIZE;
-        
-        // Add resize handler with debouncing
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                const shouldBeMobile = isMobileDevice();
-                const newGridSize = shouldBeMobile ? MOBILE_GRID_SIZE : DESKTOP_GRID_SIZE;
-                
-                if (newGridSize !== GRID_SIZE) {
-                    console.log('Switching to ' + (shouldBeMobile ? 'mobile' : 'desktop') + ' layout');
-                    GRID_SIZE = newGridSize;
-                    
-                    // Clean up existing players
-                    Object.entries(players).forEach(([id, player]) => {
-                        if (player && typeof player.destroy === 'function') {
-                            player.destroy();
-                        }
-                    });
-                    players = {};
-                    
-                    // Force grid layout update
-                    const grid = document.getElementById('grid');
-                    if (shouldBeMobile) {
-                        grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-                        grid.style.gridTemplateRows = 'repeat(3, 1fr)';
-                    } else {
-                        grid.style.gridTemplateColumns = 'repeat(5, 1fr)';
-                        grid.style.gridTemplateRows = 'repeat(2, 1fr)';
-                    }
-                    
-                    refreshAllVideos();
-                }
-            }, 250);
-        });
-
-        let players = {};  // Changed from array to object
+        let players = {};
         let audioEnabled = false;
         let correctVideoIndex = null;
-        let isProcessingClick = false;  // Add this with other global variables
+        let isProcessingClick = false;
         let timerInterval = null;
         let startTime = null;
         let currentStreak = 0;
         let bestStreak = 0;
 
-        const VALID_VIDEO_IDS = [...new Set([
-            'uWSsps159rw', 'c0NvRs9VU5E', 'RbFrlpJ2QTw', 'nIa7MQlG_aE',
-            'TYB4ADeQsPc', 'lGjBIFFwsaM', 'gU8p7cNtGh0', 'xeIgDCBhWFY',
-            '4hDqfJux47Y', 'dIbITOQC7bo', 'pDrBRGFpAlQ',
-            '9FDVvWR91ww', 'ukK_aHwnY9w', 'OBqyh1lOVYk', 'Cute2zWbQik',
-            'tGhsjfKW5i8', 'Wc7zDSq-2bo', '44K8Nt5HeWg',
-            '2ZsJHNVq7CY', 'J0iIQ629N2c', 'LrhLGL9E4CI',
-            'qQ1EZGj4QQM', 'n7zBbkU3tpc', '9n5fDmsPDQM', 'JGH14v53mC0',
-            'iksz3aGb-RU', 'HAHQrfXWFV8', 'zwMEhBq4kYM', 'beNLLK6Maf0',
-            'atgRjzYzprI', '5s5M7hioxlI', '_zTXv9cgyXU', 'pfltKY0kwcM',
-            'j4f1axM6Zds', '-BAM35vMpfs', 'Cuhw8DwcI3k',
-            'LvNlWkYzG9A', 'SLAo5QraPls', 'S8M27ZuBDN0', 'iIQs4OV9HvE',
-            '5q66DB8TktM', 'A4T6bI5w8N4', 'ogWL0xn4V9Q',
-            '8ra4u7WMC2A', '5inbF_s9Vcs', 'Qszn-TCLicA', '26JopeiSeUE',
-            'FVIT3XnyD7Q', 'ozu9plQIhP4', 'iiJDD-qtCuU', '0lxd7gIp-Og',
-            'TcWhujIV99M', 'VDzhIPsX8oA', 'dZceNuUnxLc', 'LUyyuUDxqNY',
-            '5TLJSrlxqXA', '8JKoFCUaUbY', 'JPjV7QBPFSI', '7D8mRkGXiL8',
-            'WCh0ZHaxfg8', 'mKoFkvXKmsY', 'h7bCLiJQ6Aw', 'Q5F4z-4cPEE',
-            'Z5UzB5yP1CI', '3eI8nyVJdJ0', 'Nct9MbA1fCs', 'Ebp-_V_3wy0',
-            'vkkuSRA6dP0', 'hAQcodpwsIA', '2np28mC5dYg', 'jofNR_WkoCE',
-            'PTiKjpQ-FUE', '9HqXNe-mBR0', 'LiXYi-_MVa4', 'b1_RKu-ESCY',
-            'o1feI8IybYs', 'C0n1O8D8CRg', 'wQSWGmpHQSI', 'jjH1bqiK0NE',
-            'cleydpnE9Sw', 'JO68Kh-JClk', 'xZ6_vGDcMKY', 's_HUU01fs38',
-            'YMDL2eWXhFM', 'OyUC21F10Oc', 'Rgi9PHkP4_0', 'MvMCFxmwcNs',
-            '3d25b2lT854', 'Y3U3jQOtjAk', '4Z9fu77rKsI', '57BLk_Ka-zI',
-            'CPVZTC0qATE', 'F4dIxethVAY', 'LS7uUddGMuM', 'a0y3Gl-z_uw',
-            'H6eugFRYevw', 'mQZrJku2P2M', 'jq4k5VNfdWM', 'dCBEaDkzjxU',
-            'aruah7TJDng'
-        ])];
+        function startGame() {
+            audioEnabled = true;
+            document.getElementById('startOverlay').style.display = 'none';
+            document.getElementById('timer').style.display = 'flex';
+            refreshAllVideos();
+        }
+
+        // Get list of available video files
+        const availableVideos = Array.from({length: 98}, (_, i) => `videos/${i + 1}.mp4`);
 
         function initializeGrid() {
             const grid = document.getElementById('grid');
@@ -504,82 +443,141 @@
             console.log(`Initialized ${isMobile ? 'mobile' : 'desktop'} grid with ${GRID_SIZE} videos`);
         }
 
-        function getRandomVideoIds(count) {
-            // Shuffle array and take 'count' items
-            const shuffled = [...VALID_VIDEO_IDS].sort(() => 0.5 - Math.random());
-            return shuffled.slice(0, count);
-        }
-
-        function createPlayerPromise(videoId, containerId, retryCount = 0) {
+        function createPlayer(videoPath, containerId) {
             return new Promise((resolve, reject) => {
                 const container = document.getElementById(containerId);
                 
-                // Clear any existing content
-                container.innerHTML = `
-                    <iframe 
-                        id="iframe-${containerId}"
-                        width="100%"
-                        height="100%"
-                        src="https://www.youtube.com/embed/${videoId}?enablejsapi=1&controls=0&playsinline=1&modestbranding=1&rel=0&loop=1&mute=1"
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen>
-                    </iframe>
-                    <div class="video-overlay" onclick="handleVideoClick('${containerId}')"></div>
-                    <div class="play-button" onclick="startWithSound('${containerId}')">Play with Sound</div>`;
-
-                let timeoutId;
+                // Create video element
+                const video = document.createElement('video');
+                video.style.width = '100%';
+                video.style.height = '100%';
+                video.style.objectFit = 'cover';
+                video.loop = true;
+                video.muted = true;
+                video.playsInline = true;
                 
-                const player = new YT.Player(`iframe-${containerId}`, {
-                    events: {
-                        onReady: () => {
-                            clearTimeout(timeoutId);
-                            console.log('Player ready:', containerId);
-                            players[containerId] = player;
-                            container.classList.add('loaded');
-                            resolve(true);
-                        },
-                        onError: (event) => {
-                            clearTimeout(timeoutId);
-                            console.error(`Player error for ${containerId}:`, event);
-                            handlePlayerError(videoId, containerId, retryCount, reject);
-                        },
-                        onStateChange: (event) => {
-                            if (event.data === YT.PlayerState.ENDED) {
-                                player.playVideo();
-                            }
-                        }
-                    }
-                });
-
-                // Increased timeout to 8 seconds
-                timeoutId = setTimeout(() => {
-                    handlePlayerError(videoId, containerId, retryCount, reject);
-                }, 8000);
+                // Handle the video path
+                try {
+                    // Use relative path and decode any HTML entities
+                    const decodedPath = decodeURIComponent(videoPath);
+                    video.src = decodedPath;
+                    
+                    // Add overlay and play button
+                    const overlay = document.createElement('div');
+                    overlay.className = 'video-overlay';
+                    overlay.onclick = () => handleVideoClick(containerId);
+                    
+                    const playButton = document.createElement('div');
+                    playButton.className = 'play-button';
+                    playButton.textContent = 'Play with Sound';
+                    playButton.onclick = (e) => {
+                        e.stopPropagation();
+                        startWithSound(containerId);
+                    };
+                    
+                    container.innerHTML = '';
+                    container.appendChild(video);
+                    container.appendChild(overlay);
+                    container.appendChild(playButton);
+                    
+                    // Store video element in players object
+                    players[containerId] = video;
+                    
+                    // Handle successful load
+                    video.onloadeddata = () => {
+                        container.classList.add('loaded');
+                        resolve(true);
+                    };
+                    
+                    // Handle load error
+                    video.onerror = () => {
+                        console.error(`Failed to load video: ${decodedPath}`);
+                        reject(new Error(`Failed to load video: ${decodedPath}`));
+                    };
+                } catch (error) {
+                    console.error('Error creating player:', error);
+                    reject(error);
+                }
             });
         }
 
-        function handlePlayerError(videoId, containerId, retryCount, reject) {
-            const maxRetries = 2;
-            if (retryCount < maxRetries) {
-                console.log(`Retrying player ${containerId}, attempt ${retryCount + 1}`);
-                // Clean up the failed player
-                if (players[containerId]) {
-                    try {
-                        players[containerId].destroy();
-                    } catch (e) {
-                        console.error('Error destroying player:', e);
-                    }
-                    delete players[containerId];
+        function getRandomVideos(count) {
+            const shuffled = [...availableVideos].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        }
+
+        async function refreshAllVideos() {
+            if (isProcessingClick) return;
+            
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('grid').style.display = 'grid';
+                document.querySelector('button').style.display = 'none';
+                document.getElementById('loading').textContent = 'Loading videos...';
+
+                initializeGrid();
+
+                const videoFiles = getRandomVideos(GRID_SIZE);
+                const loadedPlayers = [];
+                let loadingPromises = [];
+                
+                // Try to load each video
+                for (let i = 0; i < videoFiles.length; i++) {
+                    const promise = createPlayer(videoFiles[i], `player-${i}`)
+                        .then(() => {
+                            loadedPlayers.push(i);
+                        })
+                        .catch(err => {
+                            console.warn(`Skipping video ${i}:`, err);
+                            const container = document.getElementById(`player-${i}`);
+                            if (container) container.style.display = 'none';
+                        });
+                    
+                    loadingPromises.push(promise);
                 }
-                // Try with a new video ID
-                const newVideoId = getRandomVideoIds(1)[0];
-                createPlayerPromise(newVideoId, containerId, retryCount + 1)
-                    .then(() => console.log(`Successfully loaded player ${containerId} on retry`))
-                    .catch(error => reject(error));
-            } else {
-                reject(new Error(`Failed to load player after ${maxRetries} retries`));
+                
+                // Wait for all videos to either load or fail
+                await Promise.allSettled(loadingPromises);
+                
+                // Only proceed if we have at least 2 videos loaded
+                if (loadedPlayers.length >= 2) {
+                    document.getElementById('loading').style.display = 'none';
+                    playAllVideos();
+                    startTimer();
+                    document.querySelector('button').style.display = 'block';
+                } else {
+                    throw new Error('Not enough videos loaded successfully');
+                }
+
+            } catch (error) {
+                console.error('Error refreshing videos:', error);
+                document.getElementById('loading').textContent = 'Error loading videos. Click to retry.';
+                document.getElementById('loading').style.cursor = 'pointer';
+                document.getElementById('loading').onclick = () => {
+                    if (!isProcessingClick) {
+                        refreshAllVideos();
+                    }
+                };
             }
+        }
+
+        function playAllVideos() {
+            if (Object.keys(players).length === 0) return;
+
+            if (audioEnabled) {
+                const availableIndices = Object.keys(players).map(id => parseInt(id.split('-')[1]));
+                correctVideoIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+            }
+
+            Object.entries(players).forEach(([containerId, video]) => {
+                const index = parseInt(containerId.split('-')[1]);
+                if (audioEnabled && index === correctVideoIndex) {
+                    video.muted = false;
+                    video.volume = 1;
+                }
+                video.currentTime = 0;
+                video.play();
+            });
         }
 
         function handleVideoClick(containerId) {
@@ -589,11 +587,9 @@
             clearInterval(timerInterval);
             const finalTime = ((Date.now() - startTime) / 1000).toFixed(1);
             
-            // Immediately stop all videos
-            Object.values(players).forEach(player => {
-                if (player && typeof player.stopVideo === 'function') {
-                    player.stopVideo();
-                }
+            // Stop all videos
+            Object.values(players).forEach(video => {
+                video.pause();
             });
             
             const index = parseInt(containerId.split('-')[1]);
@@ -635,10 +631,9 @@
                 document.querySelector('.current-streak').classList.remove('streak-pulse');
                 
                 // Clean up existing players
-                Object.entries(players).forEach(([id, player]) => {
-                    if (player && typeof player.destroy === 'function') {
-                        player.destroy();
-                    }
+                Object.entries(players).forEach(([id, video]) => {
+                    video.pause();
+                    video.remove();
                     const container = document.getElementById(id);
                     if (container) {
                         container.innerHTML = '';
@@ -658,109 +653,14 @@
         }
 
         function startWithSound(containerId) {
-            const player = players[containerId];
-            if (player && typeof player.playVideo === 'function') {
-                player.unMute();
-                player.setVolume(100);
-                player.seekTo(0);
-                player.playVideo();
+            const video = players[containerId];
+            if (video) {
+                video.muted = false;
+                video.volume = 1;
+                video.currentTime = 0;
+                video.play();
             }
         }
-
-        function startGame() {
-            audioEnabled = true;
-            document.getElementById('startOverlay').style.display = 'none';
-            document.getElementById('timer').style.display = 'block';
-            refreshAllVideos();
-        }
-
-        function playAllVideos() {
-            const playerArray = Object.values(players);
-            if (playerArray.length === 0) return;
-
-            if (audioEnabled) {
-                // Choose one random video from the successfully loaded players
-                const availableIndices = Object.keys(players).map(id => parseInt(id.split('-')[1]));
-                correctVideoIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-                console.log('Unmuting video', correctVideoIndex);
-            }
-
-            // Start all videos
-            Object.entries(players).forEach(([containerId, player]) => {
-                if (player && typeof player.playVideo === 'function') {
-                    const index = parseInt(containerId.split('-')[1]);
-                    console.log('starting video', index);
-                    
-                    if (audioEnabled && index === correctVideoIndex) {
-                        player.unMute();
-                        player.setVolume(100);
-                    }
-                    player.playVideo();
-                }
-            });
-        }
-
-        async function refreshAllVideos() {
-            if (isProcessingClick) return;
-            
-            try {
-                document.getElementById('loading').style.display = 'block';
-                document.getElementById('grid').style.display = 'grid';
-                document.querySelector('button').style.display = 'none';
-                document.getElementById('loading').textContent = 'Loading videos...';
-
-                // Reinitialize grid with current size
-                initializeGrid();
-
-                const videoIds = getRandomVideoIds(GRID_SIZE);
-                console.log('Loading new videos:', videoIds);
-                
-                // Create all players at once
-                const promises = videoIds.map((videoId, index) => 
-                    createPlayerPromise(videoId, `player-${index}`)
-                );
-                
-                // Wait for all videos to load with a more graceful fallback
-                const results = await Promise.allSettled(promises);
-                const successfulLoads = results.filter(r => r.status === 'fulfilled').length;
-                
-                if (successfulLoads === 0) {
-                    throw new Error('No videos could be loaded');
-                }
-                
-                // Continue even if some players failed, as long as we have enough for the game
-                document.getElementById('loading').style.display = 'none';
-                playAllVideos();
-                startTimer();
-                document.querySelector('button').style.display = 'block';
-
-            } catch (error) {
-                console.error('Error refreshing videos:', error);
-                document.getElementById('loading').textContent = 'Error loading videos. Retrying...';
-                // Add a longer delay before retrying
-                setTimeout(() => {
-                    if (!isProcessingClick) {
-                        // Clean up any partially loaded players
-                        Object.entries(players).forEach(([id, player]) => {
-                            try {
-                                player.destroy();
-                            } catch (e) {
-                                console.error('Error destroying player:', e);
-                            }
-                        });
-                        players = {};
-                        refreshAllVideos();
-                    }
-                }, 2000);
-            }
-        }
-
-        // Wait for YouTube API to load
-        window.onYouTubeIframeAPIReady = function() {
-            initializeGrid();
-            // Don't auto-start, wait for user interaction
-            document.getElementById('grid').style.display = 'none';
-        };
 
         function startTimer() {
             startTime = Date.now();
@@ -784,6 +684,66 @@
             else if (currentStreak >= 5) streakIcon.textContent = '🔥🔥';
             else streakIcon.textContent = '🔥';
         }
+
+        // Initialize grid when page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            initializeGrid();
+            document.getElementById('grid').style.display = 'none';
+        });
+
+        // Add resize handler with debouncing
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                const shouldBeMobile = isMobileDevice();
+                const newGridSize = shouldBeMobile ? MOBILE_GRID_SIZE : DESKTOP_GRID_SIZE;
+                
+                if (newGridSize !== GRID_SIZE) {
+                    GRID_SIZE = newGridSize;
+                    
+                    // Clean up existing players
+                    Object.entries(players).forEach(([id, video]) => {
+                        video.pause();
+                        video.remove();
+                    });
+                    players = {};
+                    
+                    const grid = document.getElementById('grid');
+                    if (shouldBeMobile) {
+                        grid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+                        grid.style.gridTemplateRows = 'repeat(3, 1fr)';
+                    } else {
+                        grid.style.gridTemplateColumns = 'repeat(5, 1fr)';
+                        grid.style.gridTemplateRows = 'repeat(2, 1fr)';
+                    }
+                    
+                    refreshAllVideos();
+                }
+            }, 250);
+        });
     </script>
+</head>
+<body>
+    <div id="loading">Loading videos...</div>
+    <div class="header-bar">
+        <div class="streak-container">
+            <div class="streak-box current-streak">
+                <span class="streak-icon">🔥</span>
+                <span class="streak-count">0</span>
+            </div>
+            <div class="streak-box best-streak">
+                <span class="streak-icon">👑</span>
+                <span class="streak-count">0</span>
+            </div>
+            <div id="timer">0.0s</div>
+        </div>
+    </div>
+    <div class="grid-container" id="grid" style="display: none;"></div>
+    <button onclick="refreshAllVideos()" style="display: none;">Refresh All</button>
+
+    <div class="start-game-overlay" id="startOverlay">
+        <button class="start-button" onclick="startGame()">Start Game</button>
+    </div>
 </body>
 </html> 
