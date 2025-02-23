@@ -405,6 +405,13 @@
         let currentStreak = 0;
         let bestStreak = 0;
 
+        // CDN Configuration
+        const CDN_CONFIG = {
+            enabled: true,
+            baseUrl: 'https://dkelle.github.io/tiktok/videos', // GitHub Pages URL
+            fallbackToLocal: true  // Fallback to local files if CDN fails
+        };
+
         function startGame() {
             audioEnabled = true;
             document.getElementById('startOverlay').style.display = 'none';
@@ -413,7 +420,10 @@
         }
 
         // Get list of available video files
-        const availableVideos = Array.from({length: 98}, (_, i) => `videos/${i + 1}.mp4`);
+        const availableVideos = Array.from({length: 98}, (_, i) => {
+            const filename = `${i + 1}.mp4`;
+            return CDN_CONFIG.enabled ? `${CDN_CONFIG.baseUrl}/${filename}` : `videos/${filename}`;
+        });
 
         function initializeGrid() {
             const grid = document.getElementById('grid');
@@ -455,12 +465,11 @@
                 video.loop = true;
                 video.muted = true;
                 video.playsInline = true;
+                video.preload = 'metadata'; // Only preload metadata initially
                 
                 // Handle the video path
                 try {
-                    // Use relative path and decode any HTML entities
-                    const decodedPath = decodeURIComponent(videoPath);
-                    video.src = decodedPath;
+                    video.src = videoPath;
                     
                     // Add overlay and play button
                     const overlay = document.createElement('div');
@@ -489,10 +498,18 @@
                         resolve(true);
                     };
                     
-                    // Handle load error
-                    video.onerror = () => {
-                        console.error(`Failed to load video: ${decodedPath}`);
-                        reject(new Error(`Failed to load video: ${decodedPath}`));
+                    // Handle load error with retry and fallback
+                    video.onerror = async (e) => {
+                        console.error(`Failed to load video from CDN: ${videoPath}`, e);
+                        
+                        if (CDN_CONFIG.enabled && CDN_CONFIG.fallbackToLocal) {
+                            // Try local path as fallback
+                            const localPath = `videos/${videoPath.split('/').pop()}`;
+                            console.log(`Retrying with local path: ${localPath}`);
+                            video.src = localPath;
+                        } else {
+                            reject(new Error(`Failed to load video: ${videoPath}`));
+                        }
                     };
                 } catch (error) {
                     console.error('Error creating player:', error);
@@ -685,10 +702,28 @@
             else streakIcon.textContent = '🔥';
         }
 
-        // Initialize grid when page loads
+        // Add this function to check CDN availability
+        async function checkCDNAvailability() {
+            if (!CDN_CONFIG.enabled) return;
+
+            const testVideo = availableVideos[0];
+            try {
+                const response = await fetch(testVideo, { method: 'HEAD' });
+                if (!response.ok) {
+                    console.warn('CDN not accessible, falling back to local files');
+                    CDN_CONFIG.enabled = false;
+                }
+            } catch (error) {
+                console.warn('Error checking CDN availability:', error);
+                CDN_CONFIG.enabled = false;
+            }
+        }
+
+        // Update the DOMContentLoaded handler
         window.addEventListener('DOMContentLoaded', function() {
             initializeGrid();
             document.getElementById('grid').style.display = 'none';
+            checkCDNAvailability();
         });
 
         // Add resize handler with debouncing
