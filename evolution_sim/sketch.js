@@ -118,6 +118,13 @@ function setup() {
         foodValue.textContent = parseFloat(e.target.value).toFixed(3);
     });
 
+    const predatorEnergySlider = document.getElementById('predator-energy-slider');
+    const predatorEnergyValue = document.getElementById('predator-energy-value');
+    predatorEnergySlider.addEventListener('input', (e) => {
+        config.PREDATOR_ENERGY_GAIN_ON_EAT = parseInt(e.target.value);
+        predatorEnergyValue.textContent = e.target.value;
+    });
+
     const preyHerdingSlider = document.getElementById('prey-herding-slider');
     const preyHerdingValue = document.getElementById('prey-herding-value');
     preyHerdingSlider.addEventListener('input', (e) => {
@@ -135,6 +142,7 @@ function setup() {
     // Set initial text values
     speedValue.textContent = speedSlider.value;
     foodValue.textContent = parseFloat(foodSlider.value).toFixed(3);
+    predatorEnergyValue.textContent = predatorEnergySlider.value;
     preyHerdingValue.textContent = preyHerdingSlider.value;
     predatorPackingValue.textContent = predatorPackingSlider.value;
 }
@@ -401,7 +409,7 @@ class Simulation {
                     if (dist_to_food < p.size + closest_food.size + config.FOOD_CONSUMPTION_RADIUS) {
                         food_to_remove.add(closest_food);
                         p.energy += config.PREY_ENERGY_GAIN_ON_EAT;
-                        if (p.energy > config.PREY_REPRODUCTION_ENERGY_THRESHOLD) {
+                        while (p.energy > config.PREY_REPRODUCTION_ENERGY_THRESHOLD) {
                             p.energy -= config.PREY_REPRODUCTION_COST;
                             const child = new Prey(p.position.x, p.position.y);
                             child.wander_target = this.getRandomWanderTarget();
@@ -441,7 +449,7 @@ class Simulation {
                 if (p5.Vector.dist(p.position, closest_prey.position) < p.size + closest_prey.size) {
                     prey_to_remove.add(closest_prey);
                     p.energy += config.PREDATOR_ENERGY_GAIN_ON_EAT;
-                    if (p.energy > config.PREDATOR_REPRODUCTION_ENERGY_THRESHOLD) {
+                    while (p.energy > config.PREDATOR_REPRODUCTION_ENERGY_THRESHOLD) {
                         p.energy -= config.PREDATOR_REPRODUCTION_COST;
                         const child = new Predator(p.position.x, p.position.y);
                         child.wander_target = this.getRandomWanderTarget();
