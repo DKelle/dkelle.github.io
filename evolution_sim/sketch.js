@@ -55,6 +55,7 @@ const config = {
 let simulation;
 let populationChart;
 let simulationSpeed = 1;
+let placingCreature = null; // Can be 'prey', 'predator', or null
 
 // --- p5.js setup function ---
 function setup() {
@@ -160,6 +161,25 @@ function setup() {
         predatorSpawnValue.textContent = parseFloat(e.target.value).toFixed(4);
     });
 
+    // --- Setup Placement Palette ---
+    const placePreyButton = document.getElementById('place-prey');
+    const placePredatorButton = document.getElementById('place-predator');
+
+    const updatePaletteSelection = () => {
+        placePreyButton.classList.toggle('selected', placingCreature === 'prey');
+        placePredatorButton.classList.toggle('selected', placingCreature === 'predator');
+    };
+
+    placePreyButton.addEventListener('click', () => {
+        placingCreature = (placingCreature === 'prey') ? null : 'prey';
+        updatePaletteSelection();
+    });
+
+    placePredatorButton.addEventListener('click', () => {
+        placingCreature = (placingCreature === 'predator') ? null : 'predator';
+        updatePaletteSelection();
+    });
+
     // Set initial text values
     speedValue.textContent = speedSlider.value;
     foodValue.textContent = parseFloat(foodSlider.value).toFixed(3);
@@ -180,7 +200,46 @@ function draw() {
     background(10, 30, 50);
     simulation.draw();
     
+    drawGhostCreature();
+    
     updateGraphs();
+}
+
+function drawGhostCreature() {
+    if (placingCreature && mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height) {
+        cursor('crosshair');
+        noStroke();
+        if (placingCreature === 'prey') {
+            const c = color(config.PREY_COLOR);
+            c.setAlpha(150);
+            fill(c);
+            ellipse(mouseX, mouseY, config.PREY_SIZE * 2);
+        } else if (placingCreature === 'predator') {
+            const c = color(config.PREDATOR_COLOR);
+            c.setAlpha(150);
+            fill(c);
+            ellipse(mouseX, mouseY, config.PREDATOR_SIZE * 2);
+        }
+    } else {
+        cursor(ARROW);
+    }
+}
+
+function mousePressed() {
+    if (placingCreature && mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height) {
+        let newCreature;
+        if (placingCreature === 'prey') {
+            newCreature = new Prey(mouseX, mouseY);
+            simulation.prey.push(newCreature);
+        } else if (placingCreature === 'predator') {
+            newCreature = new Predator(mouseX, mouseY);
+            simulation.predators.push(newCreature);
+        }
+        
+        if (newCreature) {
+            newCreature.wander_target = simulation.getRandomWanderTarget();
+        }
+    }
 }
 
 function updateGraphs() {

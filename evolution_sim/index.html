@@ -19,8 +19,45 @@
             display: flex;
             gap: 20px;
         }
+        #simulation-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
         #simulation-container {
             border: 2px solid #32465a;
+        }
+        #placement-palette {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+        }
+        .palette-item {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid transparent;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .palette-item.selected {
+            border-color: #e0e0e0;
+            background-color: #3a3a52;
+        }
+        .dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .dot.blue {
+            background-color: rgb(60, 180, 255);
+        }
+        .dot.red {
+            background-color: rgb(255, 100, 80);
         }
         #side-panels {
             display: flex;
@@ -58,8 +95,20 @@
 </head>
 <body>
     <div id="main-content">
-        <div id="simulation-container" class="panel">
-            <!-- p5.js canvas will be inserted here -->
+        <div id="simulation-wrapper">
+            <div id="simulation-container" class="panel">
+                <!-- p5.js canvas will be inserted here -->
+            </div>
+            <div id="placement-palette" class="panel">
+                <div class="palette-item" id="place-prey" title="Click to select, then click on the simulation to place a prey.">
+                    <span class="dot blue"></span>
+                    <span>Place Prey</span>
+                </div>
+                <div class="palette-item" id="place-predator" title="Click to select, then click on the simulation to place a predator.">
+                    <span class="dot red"></span>
+                    <span>Place Predator</span>
+                </div>
+            </div>
         </div>
         <div id="side-panels">
             <div id="population-graph-container" class="panel">
