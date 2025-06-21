@@ -170,12 +170,12 @@ function setup() {
         placePredatorButton.classList.toggle('selected', placingCreature === 'predator');
     };
 
-    placePreyButton.addEventListener('click', () => {
+    placePreyButton.addEventListener('mousedown', () => {
         placingCreature = (placingCreature === 'prey') ? null : 'prey';
         updatePaletteSelection();
     });
 
-    placePredatorButton.addEventListener('click', () => {
+    placePredatorButton.addEventListener('mousedown', () => {
         placingCreature = (placingCreature === 'predator') ? null : 'predator';
         updatePaletteSelection();
     });
