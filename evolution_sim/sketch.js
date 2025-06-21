@@ -125,6 +125,13 @@ function setup() {
         predatorEnergyValue.textContent = e.target.value;
     });
 
+    const preyEnergySlider = document.getElementById('prey-energy-slider');
+    const preyEnergyValue = document.getElementById('prey-energy-value');
+    preyEnergySlider.addEventListener('input', (e) => {
+        config.PREY_ENERGY_GAIN_ON_EAT = parseInt(e.target.value);
+        preyEnergyValue.textContent = e.target.value;
+    });
+
     const preyHerdingSlider = document.getElementById('prey-herding-slider');
     const preyHerdingValue = document.getElementById('prey-herding-value');
     preyHerdingSlider.addEventListener('input', (e) => {
@@ -139,12 +146,29 @@ function setup() {
         predatorPackingValue.textContent = e.target.value;
     });
 
+    const preySpawnSlider = document.getElementById('prey-spawn-slider');
+    const preySpawnValue = document.getElementById('prey-spawn-value');
+    preySpawnSlider.addEventListener('input', (e) => {
+        config.RANDOM_PREY_SPAWN_CHANCE = parseFloat(e.target.value);
+        preySpawnValue.textContent = parseFloat(e.target.value).toFixed(4);
+    });
+
+    const predatorSpawnSlider = document.getElementById('predator-spawn-slider');
+    const predatorSpawnValue = document.getElementById('predator-spawn-value');
+    predatorSpawnSlider.addEventListener('input', (e) => {
+        config.RANDOM_PREDATOR_SPAWN_CHANCE = parseFloat(e.target.value);
+        predatorSpawnValue.textContent = parseFloat(e.target.value).toFixed(4);
+    });
+
     // Set initial text values
     speedValue.textContent = speedSlider.value;
     foodValue.textContent = parseFloat(foodSlider.value).toFixed(3);
     predatorEnergyValue.textContent = predatorEnergySlider.value;
+    preyEnergyValue.textContent = preyEnergySlider.value;
     preyHerdingValue.textContent = preyHerdingSlider.value;
     predatorPackingValue.textContent = predatorPackingSlider.value;
+    preySpawnValue.textContent = parseFloat(preySpawnSlider.value).toFixed(4);
+    predatorSpawnValue.textContent = parseFloat(predatorSpawnSlider.value).toFixed(4);
 }
 
 // --- p5.js draw loop ---
