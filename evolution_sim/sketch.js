@@ -55,6 +55,63 @@ const config = {
 const SEASON_DURATION_SECONDS = 20; // How long each season lasts
 const MIN_STABLE_POPULATION = 5; // Minimum creatures to be considered 'stable'
 
+// --- Achievements Configuration ---
+const ACHIEVEMENTS = [
+    {
+        id: 'prey_population',
+        title: 'Prey Paradise',
+        description: 'Maintain 100+ prey for 30 seconds',
+        requiredCount: 100,
+        requiredDuration: 30 * config.FPS,
+        type: 'prey',
+        progress: 0,
+        completed: false,
+        timer: 0
+    },
+    {
+        id: 'predator_population',
+        title: 'Apex Dominance',
+        description: 'Maintain 50+ predators for 20 seconds',
+        requiredCount: 50,
+        requiredDuration: 20 * config.FPS,
+        type: 'predator',
+        progress: 0,
+        completed: false,
+        timer: 0
+    },
+    {
+        id: 'balanced_ecosystem',
+        title: 'Perfect Balance',
+        description: 'Keep both populations above 30 for 45 seconds',
+        requiredCount: 30,
+        requiredDuration: 45 * config.FPS,
+        type: 'both',
+        progress: 0,
+        completed: false,
+        timer: 0
+    },
+    {
+        id: 'winter_survival',
+        title: 'Winter is Coming',
+        description: 'Maintain 40+ prey through an entire winter',
+        requiredCount: 40,
+        requiredDuration: SEASON_DURATION_SECONDS * config.FPS,
+        type: 'winter_prey',
+        progress: 0,
+        completed: false,
+        timer: 0
+    },
+    {
+        id: 'population_boom',
+        title: 'Population Boom',
+        description: 'Reach 200+ total creatures',
+        requiredCount: 200,
+        type: 'total',
+        progress: 0,
+        completed: false
+    }
+];
+
 // --- Global Variables ---
 let simulation;
 let populationChart;
@@ -418,6 +475,10 @@ class Simulation {
 
         this.init_populations();
         this.updateSeason();
+
+        // Initialize achievements
+        this.achievements = [...ACHIEVEMENTS];
+        this.initializeAchievementsUI();
     }
     
     initializeSeasons() {
@@ -497,6 +558,8 @@ class Simulation {
                 this.history.shift();
             }
         }
+
+        this.updateAchievements();
     }
 
     updateSeasonCycle() {
@@ -665,4 +728,144 @@ class Simulation {
         for (const p of this.prey) p.draw();
         for (const p of this.predators) p.draw();
     }
-} 
+
+    initializeAchievementsUI() {
+        const container = document.getElementById('achievements-container');
+        container.innerHTML = ''; // Clear existing achievements
+        
+        this.achievements.forEach(achievement => {
+            const achievementElement = document.createElement('div');
+            achievementElement.className = 'achievement-item';
+            achievementElement.id = `achievement-${achievement.id}`;
+            
+            achievementElement.innerHTML = `
+                <div class="achievement-checkbox"></div>
+                <div class="achievement-text">
+                    <strong>${achievement.title}</strong><br>
+                    ${achievement.description}
+                </div>
+                <div class="achievement-progress" id="progress-${achievement.id}"></div>
+            `;
+            
+            container.appendChild(achievementElement);
+        });
+    }
+
+    updateAchievements() {
+        this.achievements.forEach(achievement => {
+            if (achievement.completed) return;
+
+            const totalCreatures = this.prey.length + this.predators.length;
+            let conditionMet = false;
+
+            switch (achievement.type) {
+                case 'prey':
+                    conditionMet = this.prey.length >= achievement.requiredCount;
+                    achievement.progress = Math.min(100, Math.floor((this.prey.length / achievement.requiredCount) * 100));
+                    break;
+                case 'predator':
+                    conditionMet = this.predators.length >= achievement.requiredCount;
+                    achievement.progress = Math.min(100, Math.floor((this.predators.length / achievement.requiredCount) * 100));
+                    break;
+                case 'both':
+                    conditionMet = this.prey.length >= achievement.requiredCount && 
+                                 this.predators.length >= achievement.requiredCount;
+                    achievement.progress = Math.min(100, Math.floor(
+                        ((this.prey.length + this.predators.length) / (achievement.requiredCount * 2)) * 100
+                    ));
+                    break;
+                case 'winter_prey':
+                    if (this.getCurrentSeason().name === 'Winter') {
+                        conditionMet = this.prey.length >= achievement.requiredCount;
+                        achievement.progress = Math.min(100, Math.floor((this.prey.length / achievement.requiredCount) * 100));
+                    } else {
+                        achievement.timer = 0; // Reset timer if not winter
+                    }
+                    break;
+                case 'total':
+                    conditionMet = totalCreatures >= achievement.requiredCount;
+                    achievement.progress = Math.min(100, Math.floor((totalCreatures / achievement.requiredCount) * 100));
+                    break;
+            }
+
+            // Update timer for duration-based achievements
+            if (conditionMet && achievement.requiredDuration) {
+                achievement.timer++;
+                if (achievement.timer >= achievement.requiredDuration) {
+                    this.completeAchievement(achievement);
+                }
+            } else if (achievement.requiredDuration) {
+                achievement.timer = 0;
+            } else if (conditionMet) {
+                this.completeAchievement(achievement);
+            }
+
+            // Update UI
+            const progressElement = document.getElementById(`progress-${achievement.id}`);
+            if (progressElement) {
+                if (achievement.requiredDuration && conditionMet) {
+                    const secondsLeft = Math.ceil((achievement.requiredDuration - achievement.timer) / config.FPS);
+                    progressElement.textContent = `${secondsLeft}s left`;
+                } else {
+                    progressElement.textContent = `${achievement.progress}%`;
+                }
+            }
+        });
+    }
+
+    completeAchievement(achievement) {
+        achievement.completed = true;
+        achievement.progress = 100;
+        
+        // Update UI
+        const achievementElement = document.getElementById(`achievement-${achievement.id}`);
+        if (achievementElement) {
+            achievementElement.classList.add('completed');
+            achievementElement.querySelector('.achievement-checkbox').classList.add('completed');
+            const progressElement = achievementElement.querySelector('.achievement-progress');
+            progressElement.textContent = 'Completed!';
+        }
+
+        // Add celebration effect (you could add sound or animation here)
+        this.celebrateAchievement(achievement);
+    }
+
+    celebrateAchievement(achievement) {
+        // Create a temporary celebration element
+        const celebration = document.createElement('div');
+        celebration.style.position = 'fixed';
+        celebration.style.top = '20px';
+        celebration.style.left = '50%';
+        celebration.style.transform = 'translateX(-50%)';
+        celebration.style.background = '#4CAF50';
+        celebration.style.color = 'white';
+        celebration.style.padding = '10px 20px';
+        celebration.style.borderRadius = '4px';
+        celebration.style.zIndex = '1000';
+        celebration.style.animation = 'slideDown 0.5s ease-out';
+        celebration.innerHTML = `<strong>Achievement Unlocked:</strong> ${achievement.title}`;
+        
+        document.body.appendChild(celebration);
+        
+        // Remove the celebration after 3 seconds
+        setTimeout(() => {
+            celebration.style.animation = 'fadeOut 0.5s ease-out';
+            setTimeout(() => celebration.remove(), 500);
+        }, 3000);
+    }
+}
+
+// Add CSS animations to the existing style section
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideDown {
+        from { transform: translateX(-50%) translateY(-100%); }
+        to { transform: translateX(-50%) translateY(0); }
+    }
+    
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+`;
+document.head.appendChild(style); 

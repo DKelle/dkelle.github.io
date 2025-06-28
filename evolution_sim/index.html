@@ -102,6 +102,57 @@
         .slider-container span {
             margin-left: 10px;
         }
+        .achievements-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+        .achievement-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 8px;
+            background: #3a3a3a;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .achievement-item.completed {
+            background: #2d4a2d;
+        }
+        .achievement-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border: 2px solid #666;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .achievement-checkbox.completed {
+            background: #4CAF50;
+            border-color: #4CAF50;
+        }
+        .achievement-checkbox.completed::after {
+            content: '✓';
+            color: white;
+        }
+        .achievement-text {
+            flex: 1;
+        }
+        .achievement-progress {
+            font-size: 0.8em;
+            color: #888;
+            margin-left: 10px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+        .achievements-container {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -178,6 +229,12 @@
                     <label for="predator-spawn-slider">Random Predator Spawn Rate</label>
                     <input type="range" min="0" max="0.01" value="0.0015" step="0.0005" class="slider" id="predator-spawn-slider">
                     <span id="predator-spawn-value">0.0015</span>
+                </div>
+            </div>
+            <div class="achievements-panel">
+                <h2>Achievements</h2>
+                <div id="achievements-container">
+                    <!-- Achievement items will be added here dynamically -->
                 </div>
             </div>
         </div>
