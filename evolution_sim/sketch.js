@@ -55,60 +55,194 @@ const config = {
 const SEASON_DURATION_SECONDS = 20; // How long each season lasts
 const MIN_STABLE_POPULATION = 5; // Minimum creatures to be considered 'stable'
 
-// --- Achievements Configuration ---
-const ACHIEVEMENTS = [
+// --- Level Configuration ---
+const LEVELS = [
     {
-        id: 'prey_population',
-        title: 'Prey Paradise',
-        description: 'Maintain 100+ prey for 30 seconds',
-        requiredCount: 100,
-        requiredDuration: 30 * config.FPS,
-        type: 'prey',
-        progress: 0,
-        completed: false,
-        timer: 0
+        name: "Level 1: First Steps",
+        achievements: [
+            {
+                id: 'prey_population',
+                title: 'Prey Paradise',
+                description: 'Maintain 50+ prey for 20 seconds',
+                requiredCount: 50,
+                requiredDuration: 20 * config.FPS,
+                type: 'prey',
+                progress: 0,
+                completed: false,
+                timer: 0
+            }
+        ]
     },
     {
-        id: 'predator_population',
-        title: 'Apex Dominance',
-        description: 'Maintain 50+ predators for 20 seconds',
-        requiredCount: 50,
-        requiredDuration: 20 * config.FPS,
-        type: 'predator',
-        progress: 0,
-        completed: false,
-        timer: 0
+        name: "Level 2: Basic Balance",
+        achievements: [
+            {
+                id: 'prey_growth',
+                title: 'Growing Population',
+                description: 'Maintain 80+ prey for 25 seconds',
+                requiredCount: 80,
+                requiredDuration: 25 * config.FPS,
+                type: 'prey',
+                progress: 0,
+                completed: false,
+                timer: 0
+            },
+            {
+                id: 'predator_start',
+                title: 'Predator Introduction',
+                description: 'Maintain 30+ predators for 15 seconds',
+                requiredCount: 30,
+                requiredDuration: 15 * config.FPS,
+                type: 'predator',
+                progress: 0,
+                completed: false,
+                timer: 0
+            }
+        ]
     },
     {
-        id: 'balanced_ecosystem',
-        title: 'Perfect Balance',
-        description: 'Keep both populations above 30 for 45 seconds',
-        requiredCount: 30,
-        requiredDuration: 45 * config.FPS,
-        type: 'both',
-        progress: 0,
-        completed: false,
-        timer: 0
+        name: "Level 3: Ecosystem Basics",
+        achievements: [
+            {
+                id: 'prey_mastery',
+                title: 'Prey Mastery',
+                description: 'Maintain 100+ prey for 30 seconds',
+                requiredCount: 100,
+                requiredDuration: 30 * config.FPS,
+                type: 'prey',
+                progress: 0,
+                completed: false,
+                timer: 0
+            },
+            {
+                id: 'predator_growth',
+                title: 'Predator Growth',
+                description: 'Maintain 40+ predators for 20 seconds',
+                requiredCount: 40,
+                requiredDuration: 20 * config.FPS,
+                type: 'predator',
+                progress: 0,
+                completed: false,
+                timer: 0
+            },
+            {
+                id: 'first_balance',
+                title: 'First Balance',
+                description: 'Keep both populations above 25 for 30 seconds',
+                requiredCount: 25,
+                requiredDuration: 30 * config.FPS,
+                type: 'both',
+                progress: 0,
+                completed: false,
+                timer: 0
+            }
+        ]
     },
     {
-        id: 'winter_survival',
-        title: 'Winter is Coming',
-        description: 'Maintain 40+ prey through an entire winter',
-        requiredCount: 40,
-        requiredDuration: SEASON_DURATION_SECONDS * config.FPS,
-        type: 'winter_prey',
-        progress: 0,
-        completed: false,
-        timer: 0
+        name: "Level 4: Weather Challenge",
+        achievements: [
+            {
+                id: 'advanced_prey',
+                title: 'Advanced Prey Management',
+                description: 'Maintain 150+ prey for 35 seconds',
+                requiredCount: 150,
+                requiredDuration: 35 * config.FPS,
+                type: 'prey',
+                progress: 0,
+                completed: false,
+                timer: 0
+            },
+            {
+                id: 'advanced_predator',
+                title: 'Advanced Predator Control',
+                description: 'Maintain 60+ predators for 25 seconds',
+                requiredCount: 60,
+                requiredDuration: 25 * config.FPS,
+                type: 'predator',
+                progress: 0,
+                completed: false,
+                timer: 0
+            },
+            {
+                id: 'winter_challenge',
+                title: 'Winter Survival',
+                description: 'Maintain 40+ prey through a winter',
+                requiredCount: 40,
+                requiredDuration: SEASON_DURATION_SECONDS * config.FPS,
+                type: 'winter_prey',
+                progress: 0,
+                completed: false,
+                timer: 0
+            },
+            {
+                id: 'population_milestone',
+                title: 'Population Milestone',
+                description: 'Reach 200+ total creatures',
+                requiredCount: 200,
+                type: 'total',
+                progress: 0,
+                completed: false
+            }
+        ]
     },
     {
-        id: 'population_boom',
-        title: 'Population Boom',
-        description: 'Reach 200+ total creatures',
-        requiredCount: 200,
-        type: 'total',
-        progress: 0,
-        completed: false
+        name: "Level 5: Ecosystem Mastery",
+        achievements: [
+            {
+                id: 'prey_heaven',
+                title: 'Prey Heaven',
+                description: 'Maintain 200+ prey for 45 seconds',
+                requiredCount: 200,
+                requiredDuration: 45 * config.FPS,
+                type: 'prey',
+                progress: 0,
+                completed: false,
+                timer: 0
+            },
+            {
+                id: 'predator_heaven',
+                title: 'Predator Heaven',
+                description: 'Maintain 80+ predators for 30 seconds',
+                requiredCount: 80,
+                requiredDuration: 30 * config.FPS,
+                type: 'predator',
+                progress: 0,
+                completed: false,
+                timer: 0
+            },
+            {
+                id: 'perfect_balance',
+                title: 'Perfect Balance',
+                description: 'Keep both populations above 50 for 60 seconds',
+                requiredCount: 50,
+                requiredDuration: 60 * config.FPS,
+                type: 'both',
+                progress: 0,
+                completed: false,
+                timer: 0
+            },
+            {
+                id: 'winter_master',
+                title: 'Winter Master',
+                description: 'Maintain 60+ prey through TWO winters',
+                requiredCount: 60,
+                requiredDuration: SEASON_DURATION_SECONDS * config.FPS * 2,
+                type: 'winter_prey',
+                progress: 0,
+                completed: false,
+                timer: 0,
+                winterCount: 0
+            },
+            {
+                id: 'ecosystem_domination',
+                title: 'Ecosystem Domination',
+                description: 'Reach 300+ total creatures',
+                requiredCount: 300,
+                type: 'total',
+                progress: 0,
+                completed: false
+            }
+        ]
     }
 ];
 
@@ -120,6 +254,7 @@ let placingCreature = null; // Can be 'prey', 'predator', or null
 let baseFoodSpawnRate;
 let stabilityScore = 0;
 let seasonDisplay, scoreDisplay;
+let currentLevel = 0;
 
 // --- p5.js setup function ---
 function setup() {
@@ -464,20 +599,26 @@ class Simulation {
         this.prey = [];
         this.predators = [];
         this.food = [];
-        this.history = []; // To store population counts
+        this.history = [];
         
         // Initialize seasons with safer color creation
         this.initializeSeasons();
         this.seasonOrder = ['Summer', 'Autumn', 'Winter', 'Spring'];
         this.currentSeasonIndex = 0;
         this.season_timer = SEASON_DURATION_SECONDS * config.FPS;
-        this.score_timer = 0;
-
+        
+        // Move score tracking to class level to persist through resets
+        if (!Simulation.stabilityScore) {
+            Simulation.stabilityScore = 0;
+        }
+        if (!Simulation.achievements) {
+            Simulation.achievements = JSON.parse(JSON.stringify(LEVELS[currentLevel].achievements));
+        }
+        
         this.init_populations();
         this.updateSeason();
-
-        // Initialize achievements
-        this.achievements = [...ACHIEVEMENTS];
+        
+        // Use class-level achievements instead of instance level
         this.initializeAchievementsUI();
     }
     
@@ -582,15 +723,15 @@ class Simulation {
 
     updateScore() {
         if (this.prey.length < MIN_STABLE_POPULATION || this.predators.length < MIN_STABLE_POPULATION) {
-            stabilityScore = 0; // Reset score if unstable
+            Simulation.stabilityScore = 0; // Reset score if unstable
         } else {
             this.score_timer++;
             if (this.score_timer % config.FPS === 0) { // Add score every second
-                stabilityScore++;
+                Simulation.stabilityScore++;
             }
         }
         if (scoreDisplay) {
-            scoreDisplay.textContent = stabilityScore;
+            scoreDisplay.textContent = Simulation.stabilityScore;
         }
     }
     
@@ -733,84 +874,184 @@ class Simulation {
         const container = document.getElementById('achievements-container');
         container.innerHTML = ''; // Clear existing achievements
         
-        this.achievements.forEach(achievement => {
+        // Add level title
+        const levelTitle = document.createElement('h3');
+        levelTitle.textContent = LEVELS[currentLevel].name;
+        levelTitle.style.marginBottom = '20px';
+        container.appendChild(levelTitle);
+        
+        Simulation.achievements.forEach(achievement => {
             const achievementElement = document.createElement('div');
-            achievementElement.className = 'achievement-item';
+            achievementElement.className = 'achievement-item' + (achievement.completed ? ' completed' : '');
             achievementElement.id = `achievement-${achievement.id}`;
             
             achievementElement.innerHTML = `
-                <div class="achievement-checkbox"></div>
+                <div class="achievement-checkbox${achievement.completed ? ' completed' : ''}"></div>
                 <div class="achievement-text">
                     <strong>${achievement.title}</strong><br>
                     ${achievement.description}
                 </div>
-                <div class="achievement-progress" id="progress-${achievement.id}"></div>
+                <div class="achievement-progress" id="progress-${achievement.id}">
+                    ${achievement.completed ? 'Completed!' : `${achievement.progress}%`}
+                </div>
             `;
             
             container.appendChild(achievementElement);
         });
+
+        // Add next level button (hidden initially)
+        const nextLevelBtn = document.createElement('button');
+        nextLevelBtn.id = 'next-level-btn';
+        nextLevelBtn.className = 'next-level-button';
+        nextLevelBtn.textContent = 'Advance to Next Level';
+        nextLevelBtn.style.display = 'none';
+        nextLevelBtn.onclick = () => this.advanceToNextLevel();
+        container.appendChild(nextLevelBtn);
+    }
+
+    advanceToNextLevel() {
+        if (currentLevel < LEVELS.length - 1) {
+            currentLevel++;
+            // Reset simulation but preserve achievements
+            this.prey = [];
+            this.predators = [];
+            this.food = [];
+            this.init_populations();
+            // Reset achievements for new level
+            Simulation.achievements = JSON.parse(JSON.stringify(LEVELS[currentLevel].achievements));
+            this.initializeAchievementsUI();
+            // Show level up celebration
+            this.celebrateLevelUp();
+        } else {
+            // Game completed!
+            this.celebrateGameCompletion();
+        }
+    }
+
+    celebrateLevelUp() {
+        const celebration = document.createElement('div');
+        celebration.style.position = 'fixed';
+        celebration.style.top = '50%';
+        celebration.style.left = '50%';
+        celebration.style.transform = 'translate(-50%, -50%)';
+        celebration.style.background = '#4CAF50';
+        celebration.style.color = 'white';
+        celebration.style.padding = '20px 40px';
+        celebration.style.borderRadius = '8px';
+        celebration.style.zIndex = '1000';
+        celebration.style.fontSize = '24px';
+        celebration.style.textAlign = 'center';
+        celebration.style.animation = 'popIn 0.5s ease-out';
+        celebration.innerHTML = `
+            <h2>Level Up!</h2>
+            <p>Welcome to ${LEVELS[currentLevel].name}</p>
+            <p>New challenges await...</p>
+        `;
+        
+        document.body.appendChild(celebration);
+        
+        setTimeout(() => {
+            celebration.style.animation = 'fadeOut 0.5s ease-out';
+            setTimeout(() => celebration.remove(), 500);
+        }, 3000);
+    }
+
+    celebrateGameCompletion() {
+        const celebration = document.createElement('div');
+        celebration.style.position = 'fixed';
+        celebration.style.top = '50%';
+        celebration.style.left = '50%';
+        celebration.style.transform = 'translate(-50%, -50%)';
+        celebration.style.background = '#FFD700';
+        celebration.style.color = 'black';
+        celebration.style.padding = '40px';
+        celebration.style.borderRadius = '8px';
+        celebration.style.zIndex = '1000';
+        celebration.style.fontSize = '24px';
+        celebration.style.textAlign = 'center';
+        celebration.style.animation = 'popIn 0.5s ease-out';
+        celebration.innerHTML = `
+            <h2>🏆 Congratulations! 🏆</h2>
+            <p>You've mastered all levels!</p>
+            <p>You are now a true Ecosystem Master!</p>
+        `;
+        
+        document.body.appendChild(celebration);
     }
 
     updateAchievements() {
-        this.achievements.forEach(achievement => {
-            if (achievement.completed) return;
+        let allCompleted = true;
+        
+        Simulation.achievements.forEach(achievement => {
+            if (!achievement.completed) {
+                allCompleted = false;
+                
+                const totalCreatures = this.prey.length + this.predators.length;
+                let conditionMet = false;
 
-            const totalCreatures = this.prey.length + this.predators.length;
-            let conditionMet = false;
-
-            switch (achievement.type) {
-                case 'prey':
-                    conditionMet = this.prey.length >= achievement.requiredCount;
-                    achievement.progress = Math.min(100, Math.floor((this.prey.length / achievement.requiredCount) * 100));
-                    break;
-                case 'predator':
-                    conditionMet = this.predators.length >= achievement.requiredCount;
-                    achievement.progress = Math.min(100, Math.floor((this.predators.length / achievement.requiredCount) * 100));
-                    break;
-                case 'both':
-                    conditionMet = this.prey.length >= achievement.requiredCount && 
-                                 this.predators.length >= achievement.requiredCount;
-                    achievement.progress = Math.min(100, Math.floor(
-                        ((this.prey.length + this.predators.length) / (achievement.requiredCount * 2)) * 100
-                    ));
-                    break;
-                case 'winter_prey':
-                    if (this.getCurrentSeason().name === 'Winter') {
+                switch (achievement.type) {
+                    case 'prey':
                         conditionMet = this.prey.length >= achievement.requiredCount;
                         achievement.progress = Math.min(100, Math.floor((this.prey.length / achievement.requiredCount) * 100));
-                    } else {
-                        achievement.timer = 0; // Reset timer if not winter
-                    }
-                    break;
-                case 'total':
-                    conditionMet = totalCreatures >= achievement.requiredCount;
-                    achievement.progress = Math.min(100, Math.floor((totalCreatures / achievement.requiredCount) * 100));
-                    break;
-            }
+                        break;
+                    case 'predator':
+                        conditionMet = this.predators.length >= achievement.requiredCount;
+                        achievement.progress = Math.min(100, Math.floor((this.predators.length / achievement.requiredCount) * 100));
+                        break;
+                    case 'both':
+                        conditionMet = this.prey.length >= achievement.requiredCount && 
+                                     this.predators.length >= achievement.requiredCount;
+                        achievement.progress = Math.min(100, Math.floor(
+                            ((this.prey.length + this.predators.length) / (achievement.requiredCount * 2)) * 100
+                        ));
+                        break;
+                    case 'winter_prey':
+                        if (this.getCurrentSeason().name === 'Winter') {
+                            conditionMet = this.prey.length >= achievement.requiredCount;
+                            if (conditionMet && !achievement.winterCount) {
+                                achievement.winterCount = 1;
+                            }
+                            achievement.progress = Math.min(100, Math.floor((this.prey.length / achievement.requiredCount) * 100));
+                        } else {
+                            achievement.timer = 0; // Reset timer if not winter
+                        }
+                        break;
+                    case 'total':
+                        conditionMet = totalCreatures >= achievement.requiredCount;
+                        achievement.progress = Math.min(100, Math.floor((totalCreatures / achievement.requiredCount) * 100));
+                        break;
+                }
 
-            // Update timer for duration-based achievements
-            if (conditionMet && achievement.requiredDuration) {
-                achievement.timer++;
-                if (achievement.timer >= achievement.requiredDuration) {
+                // Update timer for duration-based achievements
+                if (conditionMet && achievement.requiredDuration) {
+                    achievement.timer++;
+                    if (achievement.timer >= achievement.requiredDuration) {
+                        this.completeAchievement(achievement);
+                    }
+                } else if (achievement.requiredDuration) {
+                    achievement.timer = 0;
+                } else if (conditionMet) {
                     this.completeAchievement(achievement);
                 }
-            } else if (achievement.requiredDuration) {
-                achievement.timer = 0;
-            } else if (conditionMet) {
-                this.completeAchievement(achievement);
-            }
 
-            // Update UI
-            const progressElement = document.getElementById(`progress-${achievement.id}`);
-            if (progressElement) {
-                if (achievement.requiredDuration && conditionMet) {
-                    const secondsLeft = Math.ceil((achievement.requiredDuration - achievement.timer) / config.FPS);
-                    progressElement.textContent = `${secondsLeft}s left`;
-                } else {
-                    progressElement.textContent = `${achievement.progress}%`;
+                // Update UI
+                const progressElement = document.getElementById(`progress-${achievement.id}`);
+                if (progressElement) {
+                    if (achievement.requiredDuration && conditionMet) {
+                        const secondsLeft = Math.ceil((achievement.requiredDuration - achievement.timer) / config.FPS);
+                        progressElement.textContent = `${secondsLeft}s left`;
+                    } else {
+                        progressElement.textContent = `${achievement.progress}%`;
+                    }
                 }
             }
         });
+
+        // Show next level button if all achievements are completed
+        const nextLevelBtn = document.getElementById('next-level-btn');
+        if (nextLevelBtn) {
+            nextLevelBtn.style.display = allCompleted ? 'block' : 'none';
+        }
     }
 
     completeAchievement(achievement) {
@@ -826,7 +1067,7 @@ class Simulation {
             progressElement.textContent = 'Completed!';
         }
 
-        // Add celebration effect (you could add sound or animation here)
+        // Add celebration effect
         this.celebrateAchievement(achievement);
     }
 
@@ -866,6 +1107,30 @@ style.textContent = `
     @keyframes fadeOut {
         from { opacity: 1; }
         to { opacity: 0; }
+    }
+
+    @keyframes popIn {
+        from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+        to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+
+    .next-level-button {
+        display: none;
+        width: 100%;
+        margin-top: 20px;
+        padding: 12px;
+        background: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: background 0.3s;
+    }
+
+    .next-level-button:hover {
+        background: #45a049;
     }
 `;
 document.head.appendChild(style); 
