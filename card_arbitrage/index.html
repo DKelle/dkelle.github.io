@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Arbitrage</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <h1>Card Arbitrage</h1>
+            <div class="stats">
+                <div class="money">💰 <span id="player-money">1000</span></div>
+                <div class="turn">Turn: <span id="turn-counter">1</span></div>
+            </div>
+        </header>
+
+        <div class="game-stages">
+            <div class="stage buy-stage active" id="buy-stage">
+                <h2>Buy Phase</h2>
+                <div class="market-cards" id="buy-market"></div>
+                <button class="next-stage-btn" onclick="nextStage()">Proceed to Sell Phase</button>
+            </div>
+
+            <div class="stage sell-stage" id="sell-stage">
+                <h2>Sell Phase</h2>
+                <div class="inventory" id="player-inventory"></div>
+                <div class="market-cards" id="sell-market"></div>
+                <button class="next-stage-btn" onclick="nextStage()">View Results</button>
+            </div>
+
+            <div class="stage results-stage" id="results-stage">
+                <h2>Results</h2>
+                <div class="results" id="turn-results"></div>
+                <button class="next-stage-btn" onclick="nextTurn()">Next Turn</button>
+            </div>
+        </div>
+
+        <div class="target-card">
+            <h3>Target Card</h3>
+            <div class="card premium" id="target-card">
+                <!-- Target card will be displayed here -->
+            </div>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html> 
