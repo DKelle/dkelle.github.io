@@ -8,12 +8,12 @@ const config = {
     FPS: 60,
 
     // Simulation Parameters
-    PREY_COLOR: 'rgb(60, 180, 255)',
-    PREY_SIZE: 3,
+    PREY_COLOR: 'rgb(100, 200, 255)', // Brighter blue
+    PREY_SIZE: 5, // Larger for visibility
     PREY_COUNT_START: 100,
 
-    PREDATOR_COLOR: 'rgb(255, 100, 80)',
-    PREDATOR_SIZE: 5,
+    PREDATOR_COLOR: 'rgb(255, 150, 100)', // Brighter red
+    PREDATOR_SIZE: 8, // Larger for visibility
     PREDATOR_COUNT_START: 40,
 
     // Energy Parameters
@@ -24,8 +24,8 @@ const config = {
     PREDATOR_REPRODUCTION_COST: 60,
 
     // Food Parameters
-    FOOD_COLOR: 'rgb(100, 255, 100)',
-    FOOD_SIZE: 3,
+    FOOD_COLOR: 'rgb(150, 255, 150)', // Brighter green
+    FOOD_SIZE: 4, // Larger for visibility
     FOOD_CONSUMPTION_RADIUS: 5,
     FOOD_COMMITMENT_DISTANCE: 15,
     FOOD_COUNT_START: 150,
@@ -51,18 +51,33 @@ const config = {
     PREDATOR_HUNTING_COMMITMENT_DISTANCE: 30,
 };
 
+// --- Seasonal & Scoring Configuration ---
+const SEASON_DURATION_SECONDS = 20; // How long each season lasts
+const MIN_STABLE_POPULATION = 5; // Minimum creatures to be considered 'stable'
+
 // --- Global Variables ---
 let simulation;
 let populationChart;
 let simulationSpeed = 1;
 let placingCreature = null; // Can be 'prey', 'predator', or null
+let baseFoodSpawnRate;
+let stabilityScore = 0;
+let seasonDisplay, scoreDisplay;
 
 // --- p5.js setup function ---
 function setup() {
+    console.log('Setup function called');
+    
     // --- Main Simulation Canvas ---
     const simCanvas = createCanvas(config.SIMULATION_WIDTH, config.SIMULATION_HEIGHT);
     simCanvas.parent('simulation-container');
     frameRate(config.FPS);
+    console.log('Canvas created:', config.SIMULATION_WIDTH, 'x', config.SIMULATION_HEIGHT);
+
+    // --- Cache UI Elements FIRST ---
+    seasonDisplay = document.getElementById('season-display');
+    scoreDisplay = document.getElementById('score-display');
+    baseFoodSpawnRate = config.FOOD_SPAWN_RATE;
 
     // --- Charting Canvases ---
     const popCtx = document.getElementById('population-graph').getContext('2d');
@@ -71,6 +86,10 @@ function setup() {
     
     // --- Initialize Simulation ---
     simulation = new Simulation(width, height);
+    console.log('Simulation created with populations:', 
+                'Prey:', simulation.prey.length, 
+                'Predators:', simulation.predators.length, 
+                'Food:', simulation.food.length);
 
     // --- Initialize Charts ---
     populationChart = new Chart(popCtx, {
@@ -180,7 +199,9 @@ function setup() {
         updatePaletteSelection();
     });
 
-    // Set initial text values
+    // UI Elements already cached above
+
+    // --- Set initial text values ---
     speedValue.textContent = speedSlider.value;
     foodValue.textContent = parseFloat(foodSlider.value).toFixed(3);
     predatorEnergyValue.textContent = predatorEnergySlider.value;
@@ -197,7 +218,10 @@ function draw() {
         simulation.update();
     }
 
-    background(10, 30, 50);
+    // Draw background with seasonal tint
+    const season = simulation.getCurrentSeason();
+    background(season.color);
+
     simulation.draw();
     
     drawGhostCreature();
@@ -384,7 +408,36 @@ class Simulation {
         this.predators = [];
         this.food = [];
         this.history = []; // To store population counts
+        
+        // Initialize seasons with safer color creation
+        this.initializeSeasons();
+        this.seasonOrder = ['Summer', 'Autumn', 'Winter', 'Spring'];
+        this.currentSeasonIndex = 0;
+        this.season_timer = SEASON_DURATION_SECONDS * config.FPS;
+        this.score_timer = 0;
+
         this.init_populations();
+        this.updateSeason();
+    }
+    
+    initializeSeasons() {
+        try {
+            this.seasons = {
+                Summer: { name: 'Summer', color: color(10, 30, 50), food_multiplier: 1.5 },
+                Autumn: { name: 'Autumn', color: color(40, 30, 40), food_multiplier: 1.0 },
+                Winter: { name: 'Winter', color: color(25, 25, 60), food_multiplier: 0.5 },
+                Spring: { name: 'Spring', color: color(20, 40, 40), food_multiplier: 1.2 }
+            };
+        } catch (error) {
+            console.warn('Failed to create p5.js colors, using fallback colors:', error);
+            // Fallback to CSS color strings if p5.js color() function isn't available
+            this.seasons = {
+                Summer: { name: 'Summer', color: 'rgb(10, 30, 50)', food_multiplier: 1.5 },
+                Autumn: { name: 'Autumn', color: 'rgb(40, 30, 40)', food_multiplier: 1.0 },
+                Winter: { name: 'Winter', color: 'rgb(25, 25, 60)', food_multiplier: 0.5 },
+                Spring: { name: 'Spring', color: 'rgb(20, 40, 40)', food_multiplier: 1.2 }
+            };
+        }
     }
 
     init_populations() {
@@ -408,6 +461,9 @@ class Simulation {
     }
 
     update() {
+        this.updateSeasonCycle();
+        this.updateScore();
+
         // Spawn new food
         if (random() < config.FOOD_SPAWN_RATE) {
             this.food.push(new Food(random(this.width), random(this.height)));
@@ -441,6 +497,42 @@ class Simulation {
                 this.history.shift();
             }
         }
+    }
+
+    updateSeasonCycle() {
+        this.season_timer--;
+        if (this.season_timer <= 0) {
+            this.currentSeasonIndex = (this.currentSeasonIndex + 1) % this.seasonOrder.length;
+            this.updateSeason();
+        }
+    }
+
+    updateSeason() {
+        const seasonName = this.seasonOrder[this.currentSeasonIndex];
+        const season = this.seasons[seasonName];
+        if (seasonDisplay) {
+            seasonDisplay.textContent = season.name;
+        }
+        config.FOOD_SPAWN_RATE = baseFoodSpawnRate * season.food_multiplier;
+        this.season_timer = SEASON_DURATION_SECONDS * config.FPS;
+    }
+
+    updateScore() {
+        if (this.prey.length < MIN_STABLE_POPULATION || this.predators.length < MIN_STABLE_POPULATION) {
+            stabilityScore = 0; // Reset score if unstable
+        } else {
+            this.score_timer++;
+            if (this.score_timer % config.FPS === 0) { // Add score every second
+                stabilityScore++;
+            }
+        }
+        if (scoreDisplay) {
+            scoreDisplay.textContent = stabilityScore;
+        }
+    }
+    
+    getCurrentSeason() {
+        return this.seasons[this.seasonOrder[this.currentSeasonIndex]];
     }
     
     updateSeparation() {
@@ -568,6 +660,7 @@ class Simulation {
     }
 
     draw() {
+        // Draw all entities
         for (const f of this.food) f.draw();
         for (const p of this.prey) p.draw();
         for (const p of this.predators) p.draw();

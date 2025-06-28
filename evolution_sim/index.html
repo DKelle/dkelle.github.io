@@ -59,6 +59,17 @@
         .dot.red {
             background-color: rgb(255, 100, 80);
         }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            align-items: center;
+        }
+        #season-display {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
         #side-panels {
             display: flex;
             flex-direction: column;
@@ -111,6 +122,17 @@
             </div>
         </div>
         <div id="side-panels">
+            <div id="status-board-container" class="panel">
+                <h3>Status</h3>
+                <div class="status-item">
+                    <span>Season:</span>
+                    <span id="season-display">Summer</span>
+                </div>
+                <div class="status-item">
+                    <span>Stability Score:</span>
+                    <span id="score-display">0</span>
+                </div>
+            </div>
             <div id="population-graph-container" class="panel">
                 <h3>Population over Time</h3>
                 <canvas id="population-graph"></canvas>
