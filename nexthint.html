@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Next Hint</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: fadeIn 1s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hint-text {
+            font-size: 1.5rem;
+            line-height: 1.8;
+            color: #2d3748;
+            font-style: italic;
+            position: relative;
+        }
+
+        .hint-text::before,
+        .hint-text::after {
+            content: '"';
+            font-size: 3rem;
+            color: #667eea;
+            opacity: 0.3;
+            position: absolute;
+        }
+
+        .hint-text::before {
+            top: -20px;
+            left: -10px;
+        }
+
+        .hint-text::after {
+            bottom: -40px;
+            right: -10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 30px;
+            }
+
+            .hint-text {
+                font-size: 1.25rem;
+                line-height: 1.7;
+            }
+
+            .hint-text::before,
+            .hint-text::after {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            .hint-text {
+                font-size: 1.1rem;
+                line-height: 1.6;
+            }
+
+            .hint-text::before {
+                top: -15px;
+                left: -5px;
+            }
+
+            .hint-text::after {
+                bottom: -30px;
+                right: -5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <p class="hint-text">Petals and bones in a ghostly embrace—your next clue blooms in the blue vase</p>
+    </div>
+</body>
+</html>
