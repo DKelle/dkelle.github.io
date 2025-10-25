@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halloween Trivia Gamble 🎃</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #1a0033 0%, #2d1b3d 50%, #1a0033 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(138, 43, 226, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 107, 53, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .game-container {
+            background: rgba(26, 0, 51, 0.9);
+            border: 3px solid #ff6b35;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 0 40px rgba(255, 107, 53, 0.3), 0 0 80px rgba(138, 43, 226, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 2.5em;
+            color: #ff6b35;
+            text-shadow: 0 0 20px rgba(255, 107, 53, 0.8);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .coin-display {
+            font-size: 2em;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+            text-shadow: 0 2px 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Start Screen */
+        .start-screen {
+            text-align: center;
+        }
+
+        .start-screen h2 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #8b5cf6;
+        }
+
+        .rules {
+            background: rgba(139, 92, 246, 0.1);
+            border: 2px solid #8b5cf6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: left;
+            line-height: 1.8;
+        }
+
+        .rules h3 {
+            color: #ff6b35;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #ff6b35, #ff8c42);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 107, 53, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Question Screen */
+        .progress {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #8b5cf6;
+            font-size: 1.1em;
+        }
+
+        .question-box {
+            background: rgba(139, 92, 246, 0.1);
+            border: 2px solid #8b5cf6;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .question-text {
+            font-size: 1.3em;
+            line-height: 1.6;
+        }
+
+        .answers {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .answer-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #8b5cf6;
+            color: white;
+            padding: 20px;
+            font-size: 1.1em;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .answer-btn:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: #ff6b35;
+            transform: translateX(5px);
+        }
+
+        .answer-btn.selected {
+            background: rgba(139, 92, 246, 0.3);
+            border-color: #ff6b35;
+            border-width: 3px;
+        }
+
+        .answer-btn.correct {
+            background: rgba(16, 185, 129, 0.3);
+            border-color: #10b981;
+            animation: correctPulse 0.5s ease;
+        }
+
+        .answer-btn.wrong {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: #ef4444;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .betting-section {
+            background: rgba(255, 107, 53, 0.1);
+            border: 2px solid #ff6b35;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .betting-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .betting-title {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #ff6b35;
+        }
+
+        .quick-bets {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .quick-bet-btn {
+            background: rgba(255, 107, 53, 0.2);
+            border: 2px solid #ff6b35;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .quick-bet-btn:hover {
+            background: rgba(255, 107, 53, 0.4);
+            transform: scale(1.1);
+        }
+
+        .quick-bet-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .slider-container {
+            margin-bottom: 20px;
+        }
+
+        .bet-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            margin: 15px 0;
+        }
+
+        .bet-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #ff6b35;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 107, 53, 0.8);
+        }
+
+        .bet-slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #ff6b35;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(255, 107, 53, 0.8);
+        }
+
+        .bet-amount {
+            text-align: center;
+            font-size: 1.8em;
+            color: #ffd700;
+            margin-bottom: 20px;
+        }
+
+        .risk-indicator {
+            text-align: center;
+            font-size: 1em;
+            margin-bottom: 20px;
+            padding: 8px;
+            border-radius: 5px;
+        }
+
+        .risk-low { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .risk-medium { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+        .risk-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .risk-allin { background: rgba(138, 43, 226, 0.2); color: #8b5cf6; animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .place-bet-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: white;
+            padding: 15px;
+            font-size: 1.3em;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .place-bet-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.6);
+        }
+
+        .result-message {
+            text-align: center;
+            font-size: 1.5em;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            font-weight: bold;
+        }
+
+        .result-message.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .result-message.win {
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid #10b981;
+            color: #10b981;
+        }
+
+        .result-message.lose {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid #ef4444;
+            color: #ef4444;
+        }
+
+        .next-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            border: none;
+            color: white;
+            padding: 15px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+            display: none;
+        }
+
+        .next-btn.active {
+            display: block;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.6);
+        }
+
+        /* Game Over Screen */
+        .game-over-screen {
+            text-align: center;
+        }
+
+        .game-over-title {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #ff6b35;
+        }
+
+        .final-score {
+            font-size: 3em;
+            color: #ffd700;
+            margin: 30px 0;
+        }
+
+        .stats {
+            background: rgba(139, 92, 246, 0.1);
+            border: 2px solid #8b5cf6;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1.1em;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #8b5cf6;
+        }
+
+        .stat-value {
+            color: #ff6b35;
+            font-weight: bold;
+        }
+
+        @keyframes coinRain {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        .coin-particle {
+            position: fixed;
+            font-size: 2em;
+            pointer-events: none;
+            z-index: 1000;
+            animation: coinRain 2s ease-out forwards;
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+            }
+
+            .title {
+                font-size: 1.8em;
+            }
+
+            .question-text {
+                font-size: 1.1em;
+            }
+
+            .answer-btn {
+                padding: 15px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1 class="title">🎃 HALLOWEEN TRIVIA GAMBLE 👻</h1>
+            <div class="coin-display" id="coinDisplay">💰 Coins: 10</div>
+        </div>
+
+        <!-- Start Screen -->
+        <div class="screen active" id="startScreen">
+            <div class="start-screen">
+                <h2>Welcome, Brave Soul!</h2>
+                <div class="rules">
+                    <h3>📜 How to Play:</h3>
+                    <p>🪙 You start with <strong>10 coins</strong></p>
+                    <p>❓ Answer Halloween trivia questions</p>
+                    <p>💰 Before each answer, <strong>bet</strong> how many coins you're willing to risk</p>
+                    <p>✅ Get it right? Win <strong>2x your bet!</strong></p>
+                    <p>❌ Get it wrong? Lose your bet</p>
+                    <p>🎯 Goal: End with as many coins as possible!</p>
+                    <p>⚠️ Hit 0 coins and it's game over!</p>
+                </div>
+                <button class="btn" onclick="startGame()">START GAME</button>
+            </div>
+        </div>
+
+        <!-- Question Screen -->
+        <div class="screen" id="questionScreen">
+            <div class="progress" id="progress">Question 1 / 18</div>
+
+            <div class="question-box">
+                <div class="question-text" id="questionText"></div>
+            </div>
+
+            <div class="answers" id="answersContainer"></div>
+
+            <div class="betting-section" id="bettingSection">
+                <div class="betting-title">How confident are you?</div>
+
+                <div class="quick-bets" id="quickBets"></div>
+
+                <div class="slider-container">
+                    <input type="range" min="1" max="10" value="1" class="bet-slider" id="betSlider">
+                    <div class="bet-amount" id="betAmount">Bet: 💰 1</div>
+                    <div class="risk-indicator" id="riskIndicator">Low Risk</div>
+                </div>
+
+                <button class="place-bet-btn" onclick="placeBet()">PLACE BET & LOCK IN</button>
+            </div>
+
+            <div class="result-message" id="resultMessage"></div>
+
+            <button class="next-btn" id="nextBtn" onclick="nextQuestion()">NEXT QUESTION →</button>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div class="screen" id="gameOverScreen">
+            <div class="game-over-screen">
+                <h2 class="game-over-title" id="gameOverTitle">🎃 GAME OVER 🎃</h2>
+                <div class="final-score" id="finalScore">💰 0 Coins</div>
+
+                <div class="stats">
+                    <div class="stat-row">
+                        <span class="stat-label">Questions Answered:</span>
+                        <span class="stat-value" id="questionsAnswered">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Correct Answers:</span>
+                        <span class="stat-value" id="correctAnswers">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Accuracy:</span>
+                        <span class="stat-value" id="accuracy">0%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Biggest Win:</span>
+                        <span class="stat-value" id="biggestWin">+0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Biggest Loss:</span>
+                        <span class="stat-value" id="biggestLoss">-0</span>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="resetGame()">PLAY AGAIN</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let coins = 10;
+        let currentQuestionIndex = 0;
+        let selectedAnswerIndex = -1;
+        let currentBet = 1;
+        let questionsCorrect = 0;
+        let questionsAnswered = 0;
+        let biggestWin = 0;
+        let biggestLoss = 0;
+
+        // Questions Database
+        const questions = [
+            {
+                question: "What vegetable were Jack-o'-lanterns originally carved from before pumpkins?",
+                answers: ["Potatoes", "Turnips", "Squash", "Beets"],
+                correct: 1
+            },
+            {
+                question: "In which country did Halloween originate?",
+                answers: ["United States", "England", "Ireland", "Scotland"],
+                correct: 2
+            },
+            {
+                question: "What is the most popular Halloween candy in the United States?",
+                answers: ["Skittles", "Snickers", "Reese's Peanut Butter Cups", "Candy Corn"],
+                correct: 2
+            },
+            {
+                question: "What does the name 'Dracula' mean?",
+                answers: ["Son of the Devil", "Night Walker", "Blood Drinker", "Immortal One"],
+                correct: 0
+            },
+            {
+                question: "In the movie 'Halloween', what is the name of the killer?",
+                answers: ["Jason Voorhees", "Freddy Krueger", "Michael Myers", "Leatherface"],
+                correct: 2
+            },
+            {
+                question: "What phobia is the fear of Halloween?",
+                answers: ["Samhainophobia", "Hallowphobia", "Spookophobia", "Octobrophobia"],
+                correct: 0
+            },
+            {
+                question: "How many minutes does it take Michael Myers to kill his first victim in the original Halloween movie?",
+                answers: ["5 minutes", "15 minutes", "2 minutes", "30 minutes"],
+                correct: 0
+            },
+            {
+                question: "What are vampire bats most likely to drink blood from?",
+                answers: ["Humans", "Cattle", "Birds", "Other bats"],
+                correct: 1
+            },
+            {
+                question: "In what year was the first 'It's the Great Pumpkin, Charlie Brown' TV special aired?",
+                answers: ["1966", "1970", "1962", "1975"],
+                correct: 0
+            },
+            {
+                question: "What item is banned in California on Halloween?",
+                answers: ["Masks", "Silly String", "Fake Blood", "Plastic Weapons"],
+                correct: 1
+            },
+            {
+                question: "According to superstition, if you see a spider on Halloween, what does it mean?",
+                answers: ["Bad luck is coming", "A loved one is watching over you", "You'll find money", "Someone is thinking of you"],
+                correct: 1
+            },
+            {
+                question: "What is the world record for fastest pumpkin carving?",
+                answers: ["16.47 seconds", "37.82 seconds", "55.43 seconds", "24.03 seconds"],
+                correct: 3
+            },
+            {
+                question: "In the Harry Potter series, what house is the Bloody Baron associated with?",
+                answers: ["Gryffindor", "Ravenclaw", "Slytherin", "Hufflepuff"],
+                correct: 2
+            },
+            {
+                question: "What is a group of witches called?",
+                answers: ["A gaggle", "A coven", "A murder", "A parliament"],
+                correct: 1
+            },
+            {
+                question: "How many pounds of candy corn are produced each year?",
+                answers: ["10 million pounds", "25 million pounds", "35 million pounds", "50 million pounds"],
+                correct: 2
+            },
+            {
+                question: "What was the original title of the classic Halloween movie 'Hocus Pocus'?",
+                answers: ["Halloween House", "The Three Witches", "Salem's Night", "It was always Hocus Pocus"],
+                correct: 0
+            },
+            {
+                question: "Which US state produces the most pumpkins?",
+                answers: ["California", "Ohio", "Illinois", "Pennsylvania"],
+                correct: 2
+            },
+            {
+                question: "What percentage of Americans decorate their homes for Halloween?",
+                answers: ["45%", "60%", "75%", "86%"],
+                correct: 3
+            }
+        ];
+
+        // Utility Functions
+        function updateCoinDisplay() {
+            const coinDisplay = document.getElementById('coinDisplay');
+            coinDisplay.textContent = `💰 Coins: ${coins}`;
+            coinDisplay.style.animation = 'none';
+            setTimeout(() => {
+                coinDisplay.style.animation = 'correctPulse 0.5s ease';
+            }, 10);
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function createCoinParticles(isWin) {
+            const particleCount = isWin ? 15 : 5;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'coin-particle';
+                particle.textContent = '💰';
+                particle.style.left = Math.random() * window.innerWidth + 'px';
+                particle.style.animationDelay = Math.random() * 0.3 + 's';
+                document.body.appendChild(particle);
+
+                setTimeout(() => particle.remove(), 2000);
+            }
+        }
+
+        // Game Functions
+        function startGame() {
+            coins = 10;
+            currentQuestionIndex = 0;
+            selectedAnswerIndex = -1;
+            currentBet = 1;
+            questionsCorrect = 0;
+            questionsAnswered = 0;
+            biggestWin = 0;
+            biggestLoss = 0;
+
+            updateCoinDisplay();
+            showScreen('questionScreen');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                endGame();
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+
+            // Update progress
+            document.getElementById('progress').textContent =
+                `Question ${currentQuestionIndex + 1} / ${questions.length}`;
+
+            // Display question
+            document.getElementById('questionText').textContent = question.question;
+
+            // Create answer buttons
+            const answersContainer = document.getElementById('answersContainer');
+            answersContainer.innerHTML = '';
+
+            question.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn';
+                button.textContent = `${String.fromCharCode(65 + index)}) ${answer}`;
+                button.onclick = () => selectAnswer(index);
+                answersContainer.appendChild(button);
+            });
+
+            // Reset betting section
+            selectedAnswerIndex = -1;
+            currentBet = 1;
+            document.getElementById('bettingSection').style.display = ''; // Clear inline style
+            document.getElementById('bettingSection').classList.remove('active');
+            document.getElementById('resultMessage').classList.remove('active');
+            document.getElementById('nextBtn').classList.remove('active');
+
+            // Setup betting UI
+            setupBettingUI();
+        }
+
+        function selectAnswer(index) {
+            // Remove previous selection
+            document.querySelectorAll('.answer-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+
+            // Select new answer
+            selectedAnswerIndex = index;
+            document.querySelectorAll('.answer-btn')[index].classList.add('selected');
+
+            // Show betting section
+            document.getElementById('bettingSection').classList.add('active');
+        }
+
+        function setupBettingUI() {
+            const slider = document.getElementById('betSlider');
+            slider.max = coins;
+            slider.value = 1;
+            currentBet = 1;
+
+            // Update bet display
+            updateBetDisplay();
+
+            // Create quick bet buttons
+            const quickBets = document.getElementById('quickBets');
+            quickBets.innerHTML = '';
+
+            const betAmounts = [1, 2, 5, coins];
+            const labels = ['1', '2', '5', 'ALL IN'];
+
+            betAmounts.forEach((amount, idx) => {
+                if (amount <= coins) {
+                    const btn = document.createElement('button');
+                    btn.className = 'quick-bet-btn';
+                    btn.textContent = labels[idx];
+                    btn.onclick = () => {
+                        slider.value = amount;
+                        currentBet = amount;
+                        updateBetDisplay();
+                    };
+                    quickBets.appendChild(btn);
+                }
+            });
+
+            // Slider event
+            slider.oninput = () => {
+                currentBet = parseInt(slider.value);
+                updateBetDisplay();
+            };
+        }
+
+        function updateBetDisplay() {
+            document.getElementById('betAmount').textContent = `Bet: 💰 ${currentBet}`;
+
+            const riskIndicator = document.getElementById('riskIndicator');
+            const percentage = (currentBet / coins) * 100;
+
+            riskIndicator.className = 'risk-indicator';
+
+            if (currentBet === coins) {
+                riskIndicator.textContent = '🔥 ALL IN! 🔥';
+                riskIndicator.classList.add('risk-allin');
+            } else if (percentage > 50) {
+                riskIndicator.textContent = '⚠️ High Risk';
+                riskIndicator.classList.add('risk-high');
+            } else if (percentage > 25) {
+                riskIndicator.textContent = '⚡ Medium Risk';
+                riskIndicator.classList.add('risk-medium');
+            } else {
+                riskIndicator.textContent = '✓ Low Risk';
+                riskIndicator.classList.add('risk-low');
+            }
+        }
+
+        function placeBet() {
+            if (selectedAnswerIndex === -1) {
+                alert('Please select an answer first!');
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+            const isCorrect = selectedAnswerIndex === question.correct;
+
+            questionsAnswered++;
+
+            // Disable betting
+            document.getElementById('bettingSection').style.display = 'none';
+
+            // Show correct/wrong answers
+            const answerButtons = document.querySelectorAll('.answer-btn');
+            answerButtons.forEach((btn, idx) => {
+                btn.disabled = true;
+                btn.style.cursor = 'not-allowed';
+
+                if (idx === question.correct) {
+                    btn.classList.add('correct');
+                } else if (idx === selectedAnswerIndex) {
+                    btn.classList.add('wrong');
+                }
+            });
+
+            // Calculate result
+            const resultMessage = document.getElementById('resultMessage');
+            resultMessage.classList.add('active');
+
+            if (isCorrect) {
+                questionsCorrect++;
+                const winAmount = currentBet;
+                coins += winAmount;
+
+                if (winAmount > biggestWin) biggestWin = winAmount;
+
+                resultMessage.className = 'result-message active win';
+                resultMessage.textContent = `✅ CORRECT! You won ${winAmount} coins! (+${winAmount})`;
+
+                createCoinParticles(true);
+            } else {
+                coins -= currentBet;
+
+                if (currentBet > biggestLoss) biggestLoss = currentBet;
+
+                resultMessage.className = 'result-message active lose';
+                resultMessage.textContent = `❌ WRONG! You lost ${currentBet} coins. (-${currentBet})`;
+
+                createCoinParticles(false);
+            }
+
+            updateCoinDisplay();
+
+            // Check for bankruptcy
+            if (coins <= 0) {
+                coins = 0;
+                updateCoinDisplay();
+                setTimeout(endGame, 2000);
+                return;
+            }
+
+            // Show next button
+            document.getElementById('nextBtn').classList.add('active');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        function endGame() {
+            const gameOverTitle = document.getElementById('gameOverTitle');
+            const finalScore = document.getElementById('finalScore');
+
+            if (coins <= 0) {
+                gameOverTitle.textContent = '💀 BANKRUPT! 💀';
+                finalScore.textContent = '💰 0 Coins';
+            } else if (coins >= 50) {
+                gameOverTitle.textContent = '🏆 INCREDIBLE! 🏆';
+                finalScore.textContent = `💰 ${coins} Coins`;
+            } else if (coins >= 20) {
+                gameOverTitle.textContent = '🎉 WELL DONE! 🎉';
+                finalScore.textContent = `💰 ${coins} Coins`;
+            } else {
+                gameOverTitle.textContent = '🎃 GAME OVER 🎃';
+                finalScore.textContent = `💰 ${coins} Coins`;
+            }
+
+            // Update stats
+            document.getElementById('questionsAnswered').textContent = questionsAnswered;
+            document.getElementById('correctAnswers').textContent = questionsCorrect;
+
+            const accuracy = questionsAnswered > 0
+                ? Math.round((questionsCorrect / questionsAnswered) * 100)
+                : 0;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+
+            document.getElementById('biggestWin').textContent = '+' + biggestWin;
+            document.getElementById('biggestLoss').textContent = '-' + biggestLoss;
+
+            showScreen('gameOverScreen');
+        }
+
+        function resetGame() {
+            showScreen('startScreen');
+        }
+    </script>
+</body>
+</html>
